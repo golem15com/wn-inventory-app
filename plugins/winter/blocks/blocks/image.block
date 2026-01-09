@@ -1,0 +1,29 @@
+name: winter.blocks::lang.blocks.image.name
+description: winter.blocks::lang.blocks.image.description
+icon: icon-picture-o
+tags: ["pages"]
+fields:
+    image:
+        type: mediafinder
+        span: full
+        mode: image
+    alt_text:
+        label: winter.blocks::lang.blocks.image.alt_text
+        span: full
+        type: text
+config:
+    size:
+        label: winter.blocks::lang.fields.size
+        span: right
+        type: balloon-selector
+        default: "w-full"
+        options:
+            "w-full": 'winter.blocks::lang.blocks.image.size.w-full'
+            "w-2/3": 'winter.blocks::lang.blocks.image.size.w-2/3'
+            "w-1/2": 'winter.blocks::lang.blocks.image.size.w-1/2'
+            "w-1/3": 'winter.blocks::lang.blocks.image.size.w-1/3'
+            "w-1/4": 'winter.blocks::lang.blocks.image.size.w-1/4'
+==
+<div class="block">
+    <img class="mx-auto {{ config.size }}" src="{{ image | media }}" alt="{{ alt_text }}">
+</div>

@@ -1,0 +1,36 @@
+name: winter.blocks::lang.blocks.button_group.name
+description: winter.blocks::lang.blocks.button_group.description
+icon: icon-object-group
+tags: ["pages"]
+fields:
+    buttons:
+        label: winter.blocks::lang.blocks.button_group.buttons
+        span: full
+        type: blocks
+        allow:
+            - button
+config:
+    position:
+        label: winter.blocks::lang.blocks.button_group.position
+        span: left
+        type: balloon-selector
+        default: "justify-center"
+        options:
+            "justify-start": winter.blocks::lang.blocks.button_group.position_left
+            "justify-center": winter.blocks::lang.blocks.button_group.position_center
+            "justify-end": winter.blocks::lang.blocks.button_group.position_right
+    width:
+        label: winter.blocks::lang.blocks.button_group.width
+        span: right
+        type: balloon-selector
+        default: "w-full"
+        options:
+            "w-full": winter.blocks::lang.blocks.button_group.width_full
+            "w-auto": winter.blocks::lang.blocks.button_group.width_auto
+==
+<div class="flex {{ config.position }} pb-4 space-x-4 w-full">
+    {% for button in buttons %}
+        {% set button = button | merge({'width': config.width, _group: 'button'}) %}
+        {{ renderBlock(button) }}
+    {% endfor %}
+</div>
