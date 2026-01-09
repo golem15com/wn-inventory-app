@@ -2,7 +2,48 @@
     <img src="https://github.com/wintercms/winter/raw/develop/.github/assets/Github%20Banner.png?raw=true" alt="Winter CMS Logo" width="100%" />
 </p>
 
-[Winter](https://wintercms.com) is a free, open-source content management system based on the [Laravel](https://laravel.com) PHP framework. Developers and agencies all around the world rely upon Winter for its quick prototyping and development, safe and secure codebase and dedication to simplicity.
+# Golem15 Stack Starter
+
+This is a **Golem15 Stack** starter project built on **WinterCMS** - a free, open-source content management system based on the [Laravel](https://laravel.com) PHP framework. It includes a comprehensive collection of 19 custom Golem15 plugins for payments, user management, AI integration, multilingual support, and content management.
+
+## Quick Start
+
+```bash
+# Clone the repository
+git clone <repository-url> golem15-starter
+cd golem15-starter
+
+# Initialize all plugin submodules (REQUIRED)
+git submodule update --init --recursive
+
+# Setup environment
+php artisan winter:env
+php artisan winter:up
+php artisan winter:mirror public --relative
+
+# Fix permissions if needed
+jinify
+```
+
+## Git Submodules
+
+All 19 Golem15 plugins are managed as **git submodules** for independent version control:
+
+- **Core:** apparatus, user
+- **Payment:** paymentgateway, pgstripe
+- **Content:** blog, bloghub, faq, menu, seo, translate
+- **Advanced:** ai, chat, websockets, quote, sitemanager, sitemap, github
+- **Widgets:** knobwidget, dualformfield
+
+**After cloning**, you must run `git submodule update --init --recursive` to populate the plugins.
+
+See [CLAUDE.md](CLAUDE.md) for detailed documentation about the plugin architecture and development workflow.
+
+---
+
+## About Winter CMS
+
+[Winter](https://wintercms.com) is a free, open-source content management system. Developers and agencies all around the world rely upon Winter for its quick prototyping and development, safe and secure codebase and dedication to simplicity.
 
 No matter how large or small your project is, Winter provides a rich development environment, regardless of your level of experience.
 

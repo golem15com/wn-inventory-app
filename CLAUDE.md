@@ -55,6 +55,36 @@ php artisan g15:sane-git --insane  # Revert skip worktree
 php artisan websockets:test-push
 ```
 
+### Git Submodules
+
+All 19 Golem15 plugins are managed as git submodules for independent version control.
+
+```bash
+# Initial setup after cloning this repository
+git submodule update --init --recursive
+
+# Update all plugins to latest versions
+git submodule update --remote --merge
+
+# Or use the helper script
+./scripts/update-submodules.sh
+
+# Working on a specific plugin
+cd plugins/golem15/apparatus
+git checkout master
+git pull
+# Make changes, commit, push to plugin repository
+cd ../../../
+git add plugins/golem15/apparatus
+git commit -m "Update apparatus submodule reference"
+```
+
+**Important Notes:**
+- After cloning, you MUST run `git submodule update --init --recursive` to populate plugins
+- Each plugin is a separate git repository tracking specific commits
+- Apparatus uses `oc-apparatus-plugin` (OctoberCMS compatibility naming)
+- All other plugins use `wn-{pluginname}-plugin` naming convention
+
 ## Architecture & Structure
 
 ### WinterCMS Foundation
