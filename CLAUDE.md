@@ -36,6 +36,7 @@ php artisan queue:clear
 
 # Testing
 php artisan winter:test         # Run Winter CMS core tests
+php artisan winter:test Golem15.PaymentGateway  # Run specific plugin tests
 composer test                   # Run PHPUnit tests
 composer lint                   # Check syntax
 composer sniff                  # Check code standards (PSR-1, PSR-2, PSR-4)
@@ -47,9 +48,15 @@ php artisan pg:finish-orders
 php artisan pg:update-currencies
 php artisan pg:update-metadata
 
-# Git Modules Management
+# Apparatus Commands
 php artisan g15:sane-git        # Skip worktree for git modules
 php artisan g15:sane-git --insane  # Revert skip worktree
+php artisan apparatus:mail-export   # Export mail templates
+php artisan apparatus:mail-import   # Import mail templates
+php artisan apparatus:mail-reset    # Reset mail templates
+
+# User Plugin Commands
+php artisan user:process-scheduled-deletions  # GDPR: Process scheduled user deletions
 
 # WebSockets
 php artisan websockets:test-push
@@ -57,7 +64,9 @@ php artisan websockets:test-push
 
 ### Git Submodules
 
-All 19 Golem15 plugins are managed as git submodules for independent version control.
+All plugins are managed as git submodules for independent version control:
+- **19 Golem15 plugins** in `plugins/golem15/`
+- **5 Winter plugins** in `plugins/winter/` (redirect, pages, debugbar, blocks, location)
 
 ```bash
 # Initial setup after cloning this repository
@@ -79,11 +88,9 @@ git add plugins/golem15/apparatus
 git commit -m "Update apparatus submodule reference"
 ```
 
-**Important Notes:**
-- After cloning, you MUST run `git submodule update --init --recursive` to populate plugins
-- Each plugin is a separate git repository tracking specific commits
+**Naming Conventions:**
 - Apparatus uses `oc-apparatus-plugin` (OctoberCMS compatibility naming)
-- All other plugins use `wn-{pluginname}-plugin` naming convention
+- All other Golem15 plugins use `wn-{pluginname}-plugin` naming
 
 ## Architecture & Structure
 
@@ -93,11 +100,11 @@ git commit -m "Update apparatus submodule reference"
 - **Storm Library**: Winter's buffer layer between Laravel and Winter to minimize breaking changes
 - **PHP Requirement**: >= 8.1
 
-### Golem15 Plugins (19 total in `plugins/golem15/`)
+### Golem15 Plugins (in `plugins/golem15/`)
 
 **Core Framework:**
 - **Apparatus**: Foundation framework providing dependency injection, scenario-based workflows, backend utilities, form widgets, and various helper classes. Required by most other plugins.
-- **User**: Enhanced user authentication with JWT support, GDPR compliance, OAuth integration (Laravel Socialite)
+- **User**: Enhanced user authentication with JWT support, GDPR compliance (scheduled deletions), OAuth integration (Laravel Socialite)
 
 **Payment & Commerce:**
 - **PaymentGateway**: Complete payment processing system with finite state machines, order management, shipping, quotes, and multi-currency support. Uses MoneyRight library for financial calculations.
@@ -112,7 +119,7 @@ git commit -m "Update apparatus submodule reference"
 - **Translate**: Multilingual support, locale management, message translation
 
 **Advanced Features:**
-- **AI**: AI integration with multiple engines, chat interfaces, prompt management
+- **AI**: AI integration with multiple engines (OpenAI, Perplexity), chat interfaces, prompt management
 - **Chat**: Real-time chat functionality
 - **WebSockets**: WebSocket support for real-time features
 - **Quote**: Quote/estimation system
@@ -126,7 +133,7 @@ git commit -m "Update apparatus submodule reference"
 
 ### Plugin Dependencies
 
-Key plugin dependencies (from `require` arrays):
+Key plugin dependencies (from `$require` arrays in Plugin.php):
 - PaymentGateway → Apparatus, User
 - Most plugins depend on Apparatus as the core framework
 
@@ -138,6 +145,7 @@ Key plugin dependencies (from `require` arrays):
 - **Route Resolver**: Custom route resolution (`apparatus.route.resolver`)
 - **Backend Injector**: CSS/JS injection for backend (`apparatus.backend.injector`)
 - **Form Widgets**: ListToggle, KnobWidget with AJAX handlers
+- **Twig Filters**: `ucfirst`, `human_date`
 
 **PaymentGateway Architecture:**
 - **Finite State Machine**: Payment and order states with event-driven transitions
@@ -146,17 +154,26 @@ Key plugin dependencies (from `require` arrays):
 - **Item Formatters**: Generic and Adjustable item types
 - **Mailer Subscribers**: Event-driven email notifications for payment/order state changes
 - **Serialization Service**: JMS Serializer for metadata caching
+- **Twig Filters**: `money`, `item_details`
 
 **User Plugin:**
 - **JWT Authentication**: Custom JWT guard using php-open-source-saver/jwt-auth
 - **Multi-Model Support**: Golem15\User or Winter\User detection
 - **Mail Blocking**: User-based email filtering
-- **GDPR**: Privacy compliance configuration
+- **GDPR**: Privacy compliance with scheduled deletion command
+- **Middleware**: `jwt.auth`, `jwt.refresh` for API routes
+
+**Model Extension Pattern:**
+Plugins extend other models dynamically using Winter's `extend()` method:
+```php
+User::extend(function ($model) {
+    $model->hasMany['payments'] = [PaymentModel::class, 'key' => 'user_id'];
+});
+```
 
 **Translation System:**
 - Uses Golem15\Translate (fork of Winter.Translate)
-- Supports locale-based message management
-- Theme and component scanning for translatable strings
+- Apparatus auto-scans `plugins/*/*/components/*/*.htm` for translatable strings
 - Translation filter: `{{ 'Original English String'|_ }}`
 
 ## Critical Framework Constraints
@@ -176,35 +193,13 @@ document.addEventListener('ajax:update', function(event) {
 ### Composer Plugin Merging
 The project uses `wikimedia/composer-merge-plugin` to automatically merge plugin-level composer.json files. Plugin dependencies are managed individually in `plugins/*/*/composer.json`.
 
-### Asset Compilation
-Winter CMS uses Laravel Mix for asset compilation (see `modules/system/package.json` and `modules/backend/package.json`).
-
-## Translation Guidelines
-
-Use the `|_` filter for translating strings in templates:
-```twig
-{{ 'This should contain original english strings'|_ }}
-```
-
-Backend translation keys follow pattern: `plugin.namespace::lang.section.key`
-
-## Testing
-
-Tests are located in:
-- `plugins/golem15/paymentgateway/tests/` (functional and unit tests)
-- Core tests in `modules/*/tests/`
-
-Run specific plugin tests:
-```bash
-php artisan winter:test Golem15.PaymentGateway
-```
-
 ## Configuration Files
 
 - `.env` - Environment configuration (generated from `.env.example`)
 - `config/app.php`, `config/cms.php`, `config/database.php` - Main configs
 - `config/dev/` - Development overrides
 - Plugin configs in `plugins/golem15/*/config/`
+- JWT config publishes to `config/jwt.php`, `config/auth.php`
 
 ## Scheduled Tasks
 
@@ -228,3 +223,4 @@ Configure Laravel scheduler via cron:
 - JWT tokens for API auth use `php-open-source-saver/jwt-auth` package
 - File structure follows WinterCMS conventions: controllers, models, components in plugin root
 - Backend forms/lists configuration in `plugins/*/models/*/fields.yaml` and `columns.yaml`
+- Backend translation keys follow pattern: `plugin.namespace::lang.section.key`
