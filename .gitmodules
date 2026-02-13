@@ -2,17 +2,9 @@
 	path = plugins/golem15/apparatus
 	url = git@github.com:golem15com/oc-apparatus-plugin.git
 	branch = master
-[submodule "plugins/golem15/ai"]
-	path = plugins/golem15/ai
-	url = git@github.com:golem15com/wn-ai-plugin.git
-	branch = master
 [submodule "plugins/golem15/blog"]
 	path = plugins/golem15/blog
 	url = git@github.com:golem15com/wn-blog-plugin.git
-	branch = master
-[submodule "plugins/golem15/bloghub"]
-	path = plugins/golem15/bloghub
-	url = git@github.com:golem15com/wn-bloghub-plugin.git
 	branch = master
 [submodule "plugins/golem15/chat"]
 	path = plugins/golem15/chat
@@ -34,10 +26,6 @@
 	path = plugins/golem15/knobwidget
 	url = git@github.com:golem15com/wn-knobwidget-plugin.git
 	branch = master
-[submodule "plugins/golem15/menu"]
-	path = plugins/golem15/menu
-	url = git@github.com:golem15com/wn-menu-plugin.git
-	branch = master
 [submodule "plugins/golem15/paymentgateway"]
 	path = plugins/golem15/paymentgateway
 	url = git@github.com:golem15com/wn-paymentgateway-plugin.git
@@ -49,14 +37,6 @@
 [submodule "plugins/golem15/quote"]
 	path = plugins/golem15/quote
 	url = git@github.com:golem15com/wn-quote-plugin.git
-	branch = master
-[submodule "plugins/golem15/seo"]
-	path = plugins/golem15/seo
-	url = git@github.com:golem15com/wn-seo-plugin.git
-	branch = master
-[submodule "plugins/golem15/sitemanager"]
-	path = plugins/golem15/sitemanager
-	url = git@github.com:golem15com/wn-sitemanager-plugin.git
 	branch = master
 [submodule "plugins/golem15/sitemap"]
 	path = plugins/golem15/sitemap
