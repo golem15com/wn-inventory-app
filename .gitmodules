@@ -2,10 +2,6 @@
 	path = plugins/golem15/apparatus
 	url = git@github.com:golem15com/oc-apparatus-plugin.git
 	branch = master
-[submodule "plugins/golem15/blog"]
-	path = plugins/golem15/blog
-	url = git@github.com:golem15com/wn-blog-plugin.git
-	branch = master
 [submodule "plugins/golem15/chat"]
 	path = plugins/golem15/chat
 	url = git@github.com:golem15com/wn-chat-plugin.git
@@ -69,3 +65,9 @@
 [submodule "plugins/winter/location"]
 	path = plugins/winter/location
 	url = https://github.com/wintercms/wn-location-plugin.git
+[submodule "plugins/golem15/journal"]
+	path = plugins/golem15/journal
+	url = git@github.com:golem15com/wn-journal-plugin.git
+[submodule "plugins/golem15/golem"]
+	path = plugins/golem15/golem
+	url = git@github.com:golem15com/wn-golem-plugin.git
