@@ -9,18 +9,20 @@ This is a **Golem15 Stack** starter project built on **WinterCMS** (Laravel-base
 ## Key Commands
 
 ### Environment Setup
+
 ```bash
-# Use legacy PHP/Composer (important!)
-php-legacy artisan <command>
-composer-legacy <command>
+# One-command setup (non-interactive, defaults to sqlite)
+./setup.sh
+
+# Or with env var overrides
+DB_CONNECTION=mysql DB_DATABASE=mydb ADMIN_PASSWORD=secret ./setup.sh
+
+# Manual commands
+php artisan <command>
+composer <command>
 
 # Fix permissions if needed
 jinify
-
-# Initial setup
-php artisan winter:env          # Generate .env file
-php artisan winter:up           # Run migrations and create admin account
-php artisan winter:mirror public --relative  # Create symlinks
 ```
 
 ### Development Commands
@@ -98,7 +100,7 @@ git commit -m "Update apparatus submodule reference"
 - **Core Modules**: System, Backend, CMS (in `modules/` directory)
 - **Laravel Version**: Laravel 9.x
 - **Storm Library**: Winter's buffer layer between Laravel and Winter to minimize breaking changes
-- **PHP Requirement**: >= 8.1
+- **PHP Requirement**: >= 8.4
 
 ### Golem15 Plugins (in `plugins/golem15/`)
 
@@ -217,7 +219,7 @@ Configure Laravel scheduler via cron:
 
 ## Development Notes
 
-- **Always use `php-legacy` and `composer-legacy`** as specified in global config
+- **PHP >= 8.4** required (Arch default 8.5 works fine; `php-legacy` 8.3 is too old)
 - Payment system uses precise decimal arithmetic via MoneyRight (never float/double)
 - Apparatus framework enables scenario-based workflows - check existing scenarios before creating ad-hoc solutions
 - JWT tokens for API auth use `php-open-source-saver/jwt-auth` package
