@@ -130,6 +130,12 @@ echo ""
 echo "==> Mirroring public assets..."
 $PHP artisan winter:mirror public --relative
 
+# --- Git status cleanup -------------------------------------------------------
+
+echo ""
+echo "==> Marking module changes as skip-worktree (git status sanity)..."
+$PHP artisan g15:sane-git
+
 # --- Done --------------------------------------------------------------------
 
 echo ""
