@@ -22,6 +22,10 @@ COMPOSER="${COMPOSER:-composer}"
 
 echo "Using: $PHP ($($PHP -r 'echo PHP_VERSION;'))"
 
+# Suppress E_DEPRECATED warnings from vendor code (Laravel 9.x on PHP 8.4+)
+# 8191 = E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED
+ARTISAN="$PHP -d error_reporting=8191 artisan"
+
 # --- Git submodules ----------------------------------------------------------
 
 echo ""
@@ -70,11 +74,11 @@ if [ "$DB_CONNECTION" = "sqlite" ]; then
 fi
 
 # --- Composer (double-run for wikimedia/composer-merge-plugin) ----------------
-# First run: install root deps (including merge-plugin). --no-scripts because
-#   the merge plugin isn't loaded yet so post-update-cmd artisan calls would
-#   run against an incomplete autoloader.
-# Second run: merge-plugin is now loaded, discovers plugin-level composer.json
-#   files and pulls their deps. Scripts run normally (.env exists by now).
+# First run: install root deps + merge-plugin resolves plugin deps. --no-scripts
+#   suppresses root scripts, but the merge plugin's internal update may still
+#   trigger post-update-cmd. jms/serializer is pinned in root require to prevent
+#   doctrine/instantiator version conflicts during partial-update resolution.
+# Second run: safety net - ensures all merged deps are fully resolved.
 
 echo ""
 echo "==> Installing composer dependencies (pass 1 - root deps)..."
@@ -88,7 +92,7 @@ $COMPOSER update --no-interaction
 
 echo ""
 echo "==> Generating application key..."
-$PHP artisan key:generate --force --no-interaction
+$ARTISAN key:generate --force --no-interaction
 
 # --- Directories -------------------------------------------------------------
 
@@ -98,7 +102,7 @@ mkdir -p storage/temp/protected/paymentgateway
 
 echo ""
 echo "==> Running migrations (winter:up)..."
-$PHP artisan winter:up
+$ARTISAN winter:up
 
 # --- Admin user seeding ------------------------------------------------------
 
@@ -111,7 +115,7 @@ ADMIN_LAST_NAME="${ADMIN_LAST_NAME:-Person}"
 echo ""
 echo "==> Creating admin user ($ADMIN_LOGIN / $ADMIN_EMAIL)..."
 
-$PHP artisan tinker --execute="
+$ARTISAN tinker --execute="
     \$seeder = new \Backend\Database\Seeds\SeedSetupAdmin;
     \$seeder->setDefaults([
         'email'     => '${ADMIN_EMAIL}',
@@ -128,13 +132,13 @@ $PHP artisan tinker --execute="
 
 echo ""
 echo "==> Mirroring public assets..."
-$PHP artisan winter:mirror public --relative
+$ARTISAN winter:mirror public --relative
 
 # --- Git status cleanup -------------------------------------------------------
 
 echo ""
 echo "==> Marking module changes as skip-worktree (git status sanity)..."
-$PHP artisan g15:sane-git
+$ARTISAN g15:sane-git
 
 # --- Done --------------------------------------------------------------------
 
