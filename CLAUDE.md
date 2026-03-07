@@ -10,10 +10,6 @@ This is a **Golem15 Stack** starter project built on **WinterCMS** (Laravel-base
 
 ### Environment Setup
 ```bash
-# Use legacy PHP/Composer (important!)
-php-legacy artisan <command>
-composer-legacy <command>
-
 # Fix permissions if needed
 jinify
 
@@ -217,7 +213,6 @@ Configure Laravel scheduler via cron:
 
 ## Development Notes
 
-- **Always use `php-legacy` and `composer-legacy`** as specified in global config
 - Payment system uses precise decimal arithmetic via MoneyRight (never float/double)
 - Apparatus framework enables scenario-based workflows - check existing scenarios before creating ad-hoc solutions
 - JWT tokens for API auth use `php-open-source-saver/jwt-auth` package
