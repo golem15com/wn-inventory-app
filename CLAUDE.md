@@ -219,7 +219,7 @@ Configure Laravel scheduler via cron:
 
 ## Development Notes
 
-- **PHP >= 8.4** required (Arch default 8.5 works fine; `php-legacy` 8.3 is too old)
+- **PHP >= 8.4** required
 - Payment system uses precise decimal arithmetic via MoneyRight (never float/double)
 - Apparatus framework enables scenario-based workflows - check existing scenarios before creating ad-hoc solutions
 - JWT tokens for API auth use `php-open-source-saver/jwt-auth` package
