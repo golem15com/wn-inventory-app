@@ -32,7 +32,7 @@ return [
 
     'connections' => [
         'sqlite' => [
-            'database' => env('DB_DATABASE', '/media/nvme/dev/golem15/golem15-starter/storage/database.sqlite'),
+            'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'driver' => 'sqlite',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'prefix' => '',

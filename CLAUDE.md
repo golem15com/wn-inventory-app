@@ -9,7 +9,18 @@ This is a **Golem15 Stack** starter project built on **WinterCMS** (Laravel-base
 ## Key Commands
 
 ### Environment Setup
+
 ```bash
+# One-command setup (non-interactive, defaults to sqlite)
+./setup.sh
+
+# Or with env var overrides
+DB_CONNECTION=mysql DB_DATABASE=mydb ADMIN_PASSWORD=secret ./setup.sh
+
+# Manual commands
+php artisan <command>
+composer <command>
+
 # Fix permissions if needed
 jinify
 
@@ -94,7 +105,7 @@ git commit -m "Update apparatus submodule reference"
 - **Core Modules**: System, Backend, CMS (in `modules/` directory)
 - **Laravel Version**: Laravel 9.x
 - **Storm Library**: Winter's buffer layer between Laravel and Winter to minimize breaking changes
-- **PHP Requirement**: >= 8.1
+- **PHP Requirement**: >= 8.4
 
 ### Golem15 Plugins (in `plugins/golem15/`)
 
@@ -213,6 +224,7 @@ Configure Laravel scheduler via cron:
 
 ## Development Notes
 
+- **PHP >= 8.4** required
 - Payment system uses precise decimal arithmetic via MoneyRight (never float/double)
 - Apparatus framework enables scenario-based workflows - check existing scenarios before creating ad-hoc solutions
 - JWT tokens for API auth use `php-open-source-saver/jwt-auth` package
