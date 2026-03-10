@@ -113,19 +113,31 @@ ADMIN_FIRST_NAME="${ADMIN_FIRST_NAME:-Admin}"
 ADMIN_LAST_NAME="${ADMIN_LAST_NAME:-Person}"
 
 echo ""
-echo "==> Creating admin user ($ADMIN_LOGIN / $ADMIN_EMAIL)..."
+echo "==> Configuring admin user ($ADMIN_LOGIN / $ADMIN_EMAIL)..."
 
 $ARTISAN tinker --execute="
-    \$seeder = new \Backend\Database\Seeds\SeedSetupAdmin;
-    \$seeder->setDefaults([
-        'email'     => '${ADMIN_EMAIL}',
-        'login'     => '${ADMIN_LOGIN}',
-        'password'  => '${ADMIN_PASSWORD}',
-        'firstName' => '${ADMIN_FIRST_NAME}',
-        'lastName'  => '${ADMIN_LAST_NAME}',
-    ]);
-    \$seeder->run();
-    echo \"Admin user created.\n\";
+    \$admin = \Backend\Models\User::where('login', 'admin')->first();
+    if (\$admin) {
+        \$admin->email      = '${ADMIN_EMAIL}';
+        \$admin->login      = '${ADMIN_LOGIN}';
+        \$admin->password   = '${ADMIN_PASSWORD}';
+        \$admin->password_confirmation = '${ADMIN_PASSWORD}';
+        \$admin->first_name = '${ADMIN_FIRST_NAME}';
+        \$admin->last_name  = '${ADMIN_LAST_NAME}';
+        \$admin->save();
+        echo \"Admin user updated.\n\";
+    } else {
+        \$seeder = new \Backend\Database\Seeds\SeedSetupAdmin;
+        \$seeder->setDefaults([
+            'email'     => '${ADMIN_EMAIL}',
+            'login'     => '${ADMIN_LOGIN}',
+            'password'  => '${ADMIN_PASSWORD}',
+            'firstName' => '${ADMIN_FIRST_NAME}',
+            'lastName'  => '${ADMIN_LAST_NAME}',
+        ]);
+        \$seeder->run();
+        echo \"Admin user created.\n\";
+    }
 "
 
 # --- Public assets -----------------------------------------------------------
