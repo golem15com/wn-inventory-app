@@ -1,155 +1,253 @@
 <p align="center">
-    <img src="https://github.com/wintercms/winter/raw/develop/.github/assets/Github%20Banner.png?raw=true" alt="Winter CMS Logo" width="100%" />
+    <img src=".github/assets/golem15-logo.png" alt="Golem15 Logo" width="120" />
 </p>
 
-# Golem15 Stack Starter
+<h1 align="center">Golem15 Starter</h1>
 
-This is a **Golem15 Stack** starter project built on **WinterCMS** - a free, open-source content management system based on the [Laravel](https://laravel.com) PHP framework. It includes a comprehensive collection of 19 custom Golem15 plugins for payments, user management, AI integration, multilingual support, and content management.
+<p align="center">
+    A battle-tested, full-stack CMS framework built on WinterCMS and Laravel.<br/>
+    Ship content sites, SaaS apps, e-commerce stores, and API backends from a single codebase.
+</p>
+
+<p align="center">
+    <strong>15 custom plugins</strong> &middot; <strong>One-command setup</strong> &middot; <strong>19+ production sites and counting</strong>
+</p>
+
+---
+
+## What is this?
+
+Golem15 Starter is the foundation we use to build and ship every project at [Golem15](https://golem15.com). It extends [WinterCMS](https://wintercms.com) (Laravel 9.x) with a curated set of plugins for payments, authentication, real-time features, AI, multilingual content, and more.
+
+Instead of wiring up the same infrastructure for every new project, you clone this starter, run `./setup.sh`, and start building features.
+
+**Projects built on this stack include:** personal portfolio APIs, automotive marketplaces, Bible quote apps, gaming communities, genealogy trees, e-commerce stores, travel guides, horoscope portals, language tools, mushroom identification sites, trade professional directories, taxi services, and tax management systems.
 
 ## Quick Start
 
 ```bash
-# Clone the repository
-git clone <repository-url> golem15-starter
-cd golem15-starter
-
-# Initialize all plugin submodules (REQUIRED)
+# Clone with all plugin submodules
+git clone <repository-url> my-project
+cd my-project
 git submodule update --init --recursive
 
-# Setup environment
-php artisan winter:env
-php artisan winter:up
-php artisan winter:mirror public --relative
+# One-command setup (SQLite by default, zero config)
+./setup.sh
 
-# Fix permissions if needed
-jinify
+# Start developing
+php artisan serve
 ```
 
-## Git Submodules
+That's it. Open `http://localhost:8000` for the frontend and `/backend` for the admin panel (login: `admin` / `admin`).
 
-All 19 Golem15 plugins are managed as **git submodules** for independent version control:
+### Setup options
 
-- **Core:** apparatus, user
-- **Payment:** paymentgateway, pgstripe
-- **Content:** blog, bloghub, faq, menu, seo, translate
-- **Advanced:** ai, chat, websockets, quote, sitemanager, sitemap, github
-- **Widgets:** knobwidget, dualformfield
+All options are environment variables - no interactive prompts:
 
-**After cloning**, you must run `git submodule update --init --recursive` to populate the plugins.
+```bash
+# Use MySQL instead of SQLite
+DB_CONNECTION=mysql DB_DATABASE=mydb DB_USERNAME=root ./setup.sh
 
-See [CLAUDE.md](CLAUDE.md) for detailed documentation about the plugin architecture and development workflow.
+# Custom admin credentials
+ADMIN_PASSWORD=secret ADMIN_EMAIL=me@example.com ./setup.sh
 
----
-
-## About Winter CMS
-
-[Winter](https://wintercms.com) is a free, open-source content management system. Developers and agencies all around the world rely upon Winter for its quick prototyping and development, safe and secure codebase and dedication to simplicity.
-
-No matter how large or small your project is, Winter provides a rich development environment, regardless of your level of experience.
-
-[![Version](https://img.shields.io/github/v/release/wintercms/winter?sort=semver&style=flat-square)](https://github.com/wintercms/winter/releases)
-[![Tests](https://img.shields.io/github/actions/workflow/status/wintercms/winter/tests.yml?branch=develop&label=tests&style=flat-square)](https://github.com/wintercms/winter/actions)
-[![License](https://img.shields.io/github/license/wintercms/winter?label=open%20source&style=flat-square)](https://packagist.org/packages/wintercms/winter)
-[![Discord](https://img.shields.io/badge/discord-join-purple?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/D5MFSPH6Ux)
-
-## Installing Winter
-
-Winter can be installed in several ways for both new users and experienced developers - see our [Installation page](https://wintercms.com/install) for more information.
-
-### Quick start with Composer
-
-For advanced users, run the following command in your terminal to install Winter via Composer:
-
-```shell
-composer create-project wintercms/winter example.com "dev-develop"
+# Different PHP binary
+PHP=php83 COMPOSER=composer83 ./setup.sh
 ```
 
-Run the following command with the folder created by the previous command to generate an environment file which will contain your configuration settings:
+### What `setup.sh` does
 
-```shell
-php artisan winter:env
+1. Initializes git submodules (all plugins)
+2. Creates `.env` from `.env.example`
+3. Installs Composer dependencies (two-pass for plugin dependency merging)
+4. Generates application key
+5. Runs database migrations
+6. Seeds admin user
+7. Mirrors public assets
+8. Cleans up git status for module directories
+
+## Plugin Architecture
+
+Every plugin is a **git submodule** with its own repository, versioning, and composer dependencies. The root project uses [`wikimedia/composer-merge-plugin`](https://github.com/wikimedia/composer-merge-plugin) to automatically merge plugin-level `composer.json` files.
+
+### Core Plugins
+
+| Plugin | Icon | Description |
+|--------|------|-------------|
+| **[Apparatus](plugins/golem15/apparatus)** | `icon-cogs` | Foundation framework. Dependency injection, scenario-based workflows, route resolver, backend injector, job management, console tools. Required by most plugins. |
+| **[User](plugins/golem15/user)** | `icon-user` | Enhanced authentication with JWT support, OAuth (Laravel Socialite), GDPR-compliant scheduled deletions, user impersonation, mail blocking, and API export. |
+
+### Payment & Commerce
+
+| Plugin | Icon | Description |
+|--------|------|-------------|
+| **[PaymentGateway](plugins/golem15/paymentgateway)** | `icon-money` | Complete payment processing with finite state machines, order management, shipping, multi-currency support, and precise decimal arithmetic via MoneyRight. 20+ mail templates. |
+| **[PGStripe](plugins/golem15/pgstripe)** | `icon-stripe` | Stripe payment operator with Payment Intents API, 3DS2 support, webhook handling, and test/live mode configuration. |
+
+### Content & SEO
+
+| Plugin | Icon | Description |
+|--------|------|-------------|
+| **[FAQ](plugins/golem15/faq)** | `icon-question-circle` | FAQ management with backend editor and frontend component. |
+| **[Sitemap](plugins/golem15/sitemap)** | `icon-sitemap` | XML sitemap generation with definition editor and multilingual support. |
+| **[Translate](plugins/golem15/translate)** | `icon-language` | Full multilingual system - locale picker, message translation, 9 multilingual form widgets, AI-powered translation helpers, theme/page/mail template translation. |
+| **[Quote](plugins/golem15/quote)** | `icon-leaf` | AI-powered quote generation with scheduled daily generation and frontend display component. |
+
+### Real-time & Communication
+
+| Plugin | Icon | Description |
+|--------|------|-------------|
+| **[WebSockets](plugins/golem15/websockets)** | `icon-bolt` | Real-time communication via Centrifugo. Broadcasting, channel authorization, push notifications with VAPID keys. |
+| **[Chat](plugins/golem15/chat)** | `icon-comments` | Real-time chat with decoupled context providers, channel management, and adapter registration for external plugins. |
+
+### Developer Tools & Integrations
+
+| Plugin | Icon | Description |
+|--------|------|-------------|
+| **[GitHub](plugins/golem15/github)** | `icon-github` | GitHub API integration - fetch issues/PRs, start work, close issues from the command line. |
+| **[DualFormField](plugins/golem15/dualformfield)** | `icon-leaf` | Dual input form widget for paired values in backend forms. |
+| **[KnobWidget](plugins/golem15/knobwidget)** | `icon-cog` | Knob/dial form widget for numeric input with AJAX handler support. |
+
+### Bundled Winter Plugins
+
+| Plugin | Purpose |
+|--------|---------|
+| **[Winter.Pages](plugins/winter/pages)** | Static page management |
+| **[Winter.Blocks](plugins/winter/blocks)** | Content block system |
+| **[Winter.Redirect](plugins/winter/redirect)** | URL redirect management |
+| **[Winter.Location](plugins/winter/location)** | Country & state data |
+| **[Winter.Debugbar](plugins/winter/debugbar)** | Debug toolbar for development |
+
+### Plugin Dependency Graph
+
+```
+Apparatus ─────────────┬──── PaymentGateway ──── PGStripe
+                       │
+User ──────────────────┼──── WebSockets ──── Chat
+                       │
+                       ├──── GitHub
+                       └──── Quote (+ AI)
 ```
 
-After configuring your installation, you can run the following command to run the database migrations and automatically create an administrator account with the username `admin`. The password of this account will be automatically generated and displayed in your terminal.
+## Project Structure
 
-```shell
-php artisan winter:up
+```
+.
+├── config/                 # App configuration
+├── modules/                # WinterCMS core (system, backend, cms)
+├── plugins/
+│   ├── golem15/            # 15 Golem15 plugins (git submodules)
+│   └── winter/             # 5 Winter plugins (git submodules)
+├── themes/                 # CMS themes
+├── storage/                # Cache, logs, uploads, SQLite DB
+├── setup.sh                # One-command project setup
+├── CLAUDE.md               # AI assistant instructions
+└── composer.json            # Root deps + plugin merge config
 ```
 
-## Learning Winter
+## Common Commands
 
-The best place to learn Winter is by [reading the documentation](https://wintercms.com/docs) or [following some tutorials](https://wintercms.com/blog/category/tutorials). You can also join the maintenance team and our active community on [Discord](https://discord.gg/D5MFSPH6Ux) who are always willing to help out with questions.
+```bash
+# Database
+php artisan winter:up               # Run all migrations
+php artisan winter:down             # Drop all tables
+php artisan migrate                 # Run pending migrations
 
-## Development team
+# Cache
+php artisan cache:clear
+php artisan queue:clear
 
-Winter was forked from October CMS in March 2021 due to a difference in open source management philosophies between the core maintainer team and the two founders of October.
+# Testing
+php artisan winter:test                        # Run core tests
+php artisan winter:test Golem15.PaymentGateway # Test specific plugin
+composer test                                  # PHPUnit
+composer lint                                  # Syntax check
+composer sniff                                 # PSR code standards
 
-The development of Winter is lead by [Luke Towers](https://luketowers.ca/), along with many wonderful people that dedicate their time to help support and grow the community. The [Frostbyte Foundation](mailto:hello@frostbytefoundation.org) provides an organisational backing for the project and the continued development of Winter, its plugins and themes and its ecosystem.
+# Payment operations
+php artisan pg:cancel-created-payments
+php artisan pg:cancel-placed-orders
+php artisan pg:finish-orders
+php artisan pg:update-currencies
 
-<table>
-  <tr>
-    <td align="center"><a href="https://github.com/luketowers"><img src="https://avatars.githubusercontent.com/u/7253840?v=3" width="100px;" alt="Luke Towers"/><br /><sub><b>Luke Towers</b></sub></a></td>
-    <td align="center"><a href="https://github.com/bennothommo"><img src="https://avatars.githubusercontent.com/u/15900351?v=3" width="100px;" alt="Ben Thomson"/><br /><sub><b>Ben Thomson</b></sub></a></td>
-    <td align="center"><a href="https://github.com/mjauvin"><img src="https://avatars.githubusercontent.com/u/2013630?v=3" width="100px;" alt="Marc Jauvin"/><br /><sub><b>Marc Jauvin</b></sub></a></td>
-    <td align="center"><a href="https://github.com/jaxwilko"><img src="https://avatars.githubusercontent.com/u/31214002?v=4" width="100px;" alt="Jack Wilkinson"/><br /><sub><b>Jack Wilkinson</b></sub></a></td>
-  </tr>
-</table>
+# Translation
+php artisan translate:scan                     # Scan for translatable strings
+php artisan translate:export                   # Export translations
+php artisan translate:plugin-translate-ai      # AI-assisted translation
 
-## Foundation library
+# User management
+php artisan user:process-scheduled-deletions   # GDPR: process deletions
 
-Winter is built on top of the wildly-popular [Laravel](https://laravel.com) framework for PHP, with the in-house [Storm](https://github.com/wintercms/storm) library as a buffer between the Laravel framework and the Winter project, to minimize breaking changes and improve stability.
+# WebSockets
+php artisan websockets:health                  # Check Centrifugo status
+php artisan websockets:test-push               # Test push notification
 
-## Getting in touch
+# Git helpers
+php artisan g15:sane-git                       # Clean git status for modules
+php artisan g15:sane-git --insane              # Revert skip-worktree
 
-You can get in touch with the maintainer team using the following mediums:
+# Mail templates
+php artisan apparatus:mail-export
+php artisan apparatus:mail-import
+php artisan apparatus:mail-reset
+```
 
-* [Follow us on Twitter](https://twitter.com/usewintercms) for announcements and updates.
-* [Join us on Discord](https://discord.gg/D5MFSPH6Ux) to chat with us.
+## Working with Submodules
 
-## Contributing
+Each plugin has its own git repository. To work on a specific plugin:
 
-Before contributing issues or pull requests, be sure to review the [Contributing Guidelines](https://github.com/wintercms/.github/blob/master/CONTRIBUTING.md) first.
+```bash
+cd plugins/golem15/apparatus
+git checkout develop
+git pull origin develop
 
-### Coding standards
+# Make changes, commit, push to the plugin repo
+git add . && git commit -m "Your change"
+git push
 
-Please follow the following guides and code standards:
+# Back in root - update the submodule reference
+cd ../../..
+git add plugins/golem15/apparatus
+git commit -m "Update apparatus submodule"
+```
 
-* [PSR 4 Coding Standards](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md)
-* [PSR 2 Coding Style Guide](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md)
-* [PSR 1 Coding Standards](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-1-basic-coding-standard.md)
+Update all plugins at once:
 
-### Code of conduct
+```bash
+git submodule update --remote --merge
+```
 
-In order to ensure that the Winter community is welcoming to all, please review and abide by the [Code of Conduct](https://github.com/wintercms/.github/blob/master/CODE_OF_CONDUCT.md).
+## Scheduled Tasks
 
-## Sponsors
+The PaymentGateway registers automatic maintenance tasks:
 
-Winter CMS development is financially supported by the generosity of the following sponsors. If you would like to have your name, company and link added to this list and support open-source development, feel free to make a donation to our [Open Collective](https://opencollective.com/wintercms).
+| Task | Frequency |
+|------|-----------|
+| Cancel sent payments | Daily |
+| Cancel created payments | Daily |
+| Cancel placed orders | Daily |
+| Finish completed orders | Daily |
+| Update currency rates | Every 10 minutes |
 
-### Organizations
+Enable the Laravel scheduler via cron:
 
-<a href="https://laravel.com/?ref=wintercms" target="_blank">
-    <img src="https://raw.githubusercontent.com/laravel/art/refs/heads/master/logo-type/5%20svg/3%20RGB/1%20Full%20Color/laravel-logotype-rgb-red.svg" alt="Laravel logo" width="300">
-</a>
+```bash
+* * * * * cd /path/to/project && php artisan schedule:run >> /dev/null 2>&1
+```
 
-Laravel provides [Laravel Vapor](https://vapor.laravel.com/?ref=wintercms) to the Winter CMS project which is used to power the serverless PHP hosting used for our [main website and documentation](https://wintercms.com/). 
+## Requirements
 
-<a href="https://froala.com/wysiwyg-editor/" target="_blank">
-    <img src="https://froala.com/wp-content/uploads/2019/10/froala.svg" alt="Froala logo" width="300">
-</a>
+- **PHP** >= 8.4
+- **Composer** 2.x
+- **Database**: SQLite (default), MySQL, or PostgreSQL
+- **Optional**: Centrifugo (for WebSockets), Stripe account (for payments)
 
-Froala provides a perpetual, Enterprise license to Winter CMS which allows us and our users to use the Froala WYSIWYG Editor in Winter CMS powered projects.
+## Built on
 
-### Individuals
-
-Big thanks to our sponsors on OpenCollective:
-
-- Orville
+- [WinterCMS](https://wintercms.com) - Open-source CMS platform
+- [Laravel 9.x](https://laravel.com) - PHP framework
+- [Storm Library](https://github.com/wintercms/storm) - Stability layer between Laravel and Winter
 
 ## License
 
-The Winter platform is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-
-## Security vulnerabilities
-
-Please review [our security policy](https://github.com/wintercms/winter/security/policy) on how to report security vulnerabilities.
+MIT
