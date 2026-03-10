@@ -6,10 +6,6 @@
 	path = plugins/golem15/chat
 	url = git@github.com:golem15com/wn-chat-plugin.git
 	branch = master
-[submodule "plugins/golem15/dualformfield"]
-	path = plugins/golem15/dualformfield
-	url = git@github.com:golem15com/wn-dualformfield-plugin.git
-	branch = master
 [submodule "plugins/golem15/faq"]
 	path = plugins/golem15/faq
 	url = git@github.com:golem15com/wn-faq-plugin.git
@@ -71,3 +67,7 @@
 [submodule "plugins/golem15/golem"]
 	path = plugins/golem15/golem
 	url = git@github.com:golem15com/wn-golem-plugin.git
+[submodule "plugins/golem15/dualformwidget"]
+	path = plugins/golem15/dualformwidget
+	url = git@github.com:golem15com/wn-dualformfield-plugin.git
+	branch = master
