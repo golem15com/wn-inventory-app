@@ -25,16 +25,18 @@ Instead of wiring up the same infrastructure for every new project, you clone th
 
 ## Quick Start
 
+> **Important:** Always **fork** this repository before starting a new project. The starter is a template - your project should live in its own repo so you can evolve independently while still being able to pull upstream improvements.
+
 ```bash
-# Clone with all plugin submodules
-git clone <repository-url> my-project
+# 1. Fork this repo on GitHub/Gitea, then clone your fork
+git clone <your-fork-url> my-project
 cd my-project
 git submodule update --init --recursive
 
-# One-command setup (SQLite by default, zero config)
+# 2. One-command setup (SQLite by default, zero config)
 ./setup.sh
 
-# Start developing
+# 3. Start developing
 php artisan serve
 ```
 
@@ -192,29 +194,94 @@ php artisan apparatus:mail-import
 php artisan apparatus:mail-reset
 ```
 
-## Working with Submodules
+## Working with Submodules (SSU)
 
-Each plugin has its own git repository. To work on a specific plugin:
+This project manages 20 git submodules. We strongly recommend [**SSU**](https://ssu.pxpx.co.uk) (Smart Submodule Updater) instead of raw git commands - it handles branch detection, conflict resolution, parallel fetching, and automatic backups.
+
+### Install SSU
+
+```bash
+curl -fsSL https://ssu.pxpx.co.uk | bash
+```
+
+This downloads the latest binary for your platform and installs it to `~/.local/bin`. Restart your shell or add it to your PATH.
+
+### Daily workflow
+
+```bash
+# See the state of every submodule at a glance
+ssu status
+```
+
+```
+┌──────────────────────────────────────┬───────────────┬─────────────┬──────────────┐
+│Path                                  │Branch         │Behind       │Status        │
+├──────────────────────────────────────┼───────────────┼─────────────┼──────────────┤
+│plugins/golem15/apparatus             │develop        │0            │current       │
+│plugins/golem15/paymentgateway        │develop        │3            │behind        │
+│plugins/golem15/user                  │develop        │0            │current       │
+│plugins/winter/redirect               │main           │1            │ahead         │
+└──────────────────────────────────────┴───────────────┴─────────────┴──────────────┘
+```
+
+**Status meanings:**
+- **current** - Up to date, nothing to do
+- **behind** - Remote has new commits, run `ssu update` to pull them in
+- **ahead** - You have unpushed local commits, run `ssu push` to publish them
+- **modified** - Uncommitted local changes in the submodule
+- **missing** - Submodule directory is empty, run `git submodule update --init`
+
+```bash
+# Pull latest changes for all submodules (parallel fetch, auto-merge)
+ssu update
+
+# Push any submodules that have unpushed commits
+ssu push
+
+# Commit updated submodule pointers in the root project
+ssu project
+ssu project -m "chore: update plugins to latest"
+
+# Preview what would happen without changing anything
+ssu update --dry-run
+ssu push --dry-run
+
+# Run a command across all submodules
+ssu exec -- git log --oneline -3
+
+# Fix detached HEAD states (common after git submodule update)
+ssu checkout
+
+# Fully automatic mode for CI/CD (no prompts)
+ssu update --auto && ssu push --auto
+```
+
+### SSU vs raw git
+
+| Task | Raw git | SSU |
+|------|---------|-----|
+| Check status | `git submodule foreach 'git status'` | `ssu status` |
+| Update all | `git submodule update --remote --merge` | `ssu update` |
+| Push all | Manual `cd` into each submodule | `ssu push` |
+| Commit pointers | `git add plugins/... && git commit` | `ssu project` |
+| Conflict handling | Manual | Automatic with backups |
+| Parallel fetching | No | Yes (8 jobs default) |
+
+### Manual workflow (without SSU)
+
+If you prefer raw git commands:
 
 ```bash
 cd plugins/golem15/apparatus
-git checkout develop
-git pull origin develop
+git checkout develop && git pull
 
-# Make changes, commit, push to the plugin repo
-git add . && git commit -m "Your change"
-git push
+# Make changes, commit, push
+git add . && git commit -m "Your change" && git push
 
-# Back in root - update the submodule reference
+# Update root project reference
 cd ../../..
 git add plugins/golem15/apparatus
 git commit -m "Update apparatus submodule"
-```
-
-Update all plugins at once:
-
-```bash
-git submodule update --remote --merge
 ```
 
 ## Scheduled Tasks
