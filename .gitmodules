@@ -71,3 +71,6 @@
 	path = plugins/golem15/dualformwidget
 	url = git@github.com:golem15com/wn-dualformfield-plugin.git
 	branch = master
+[submodule "plugins/golem15/backend"]
+	path = plugins/golem15/backend
+	url = git@github.com:golem15com/wn-backend-plugin.git
