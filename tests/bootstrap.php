@@ -22,7 +22,5 @@ require_once $baseDir . '/modules/system/tests/bootstrap/app.php';
 if (!defined('GOLEM15_TEST_BOOTSTRAP_RAN')) {
     define('GOLEM15_TEST_BOOTSTRAP_RAN', true);
 
-    // Disable WebSocket model event broadcasting during tests.
-    // Harmless if the WebSockets plugin is not loaded.
     putenv('WS_ENABLE_MODEL_UPDATES=false');
 }

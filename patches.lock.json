@@ -1,0 +1,17 @@
+{
+    "_hash": "4f87cd78022f51b6142234a39da8e927840bbd25a5fa6970e974826724c1feb0",
+    "patches": {
+        "winter/storm": [
+            {
+                "package": "winter/storm",
+                "description": "Fix PHP 8.4 null array offset deprecation in Config\\Repository",
+                "url": "patches/winter-storm-php84-null-offset.patch",
+                "sha256": "c422d1347bf45f717731ad51255f599c70e17505a34c41d7ecc5220b104c437f",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ]
+    }
+}
