@@ -1,0 +1,21 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - vendor/phpstan/phpstan-strict-rules/rules.neon
+    - phpstan-baseline.neon
+
+parameters:
+    level: 6
+    paths:
+        - plugins/golem15
+        - plugins/winter
+    excludePaths:
+        - plugins/golem15/*/vendor
+        - plugins/golem15/*/tests
+        - plugins/golem15/*/updates
+        - plugins/winter/*/vendor
+        - plugins/winter/*/tests
+        - plugins/winter/*/updates
+    ignoreErrors:
+        -
+            identifier: missingType.iterableValue
+    reportUnmatchedIgnoredErrors: false
