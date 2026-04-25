@@ -23,11 +23,11 @@ rg -n 'unserialize\s*\(' $TARGETS --glob '*.php' || true
 echo ""
 echo "=== Raw SQL / SQL Injection Vectors ==="
 rg -n 'DB::raw\s*\(' $TARGETS --glob '*.php' || true
-rg -n '->whereRaw\s*\(' $TARGETS --glob '*.php' || true
-rg -n '->selectRaw\s*\(' $TARGETS --glob '*.php' || true
-rg -n '->orderByRaw\s*\(' $TARGETS --glob '*.php' || true
-rg -n '->havingRaw\s*\(' $TARGETS --glob '*.php' || true
-rg -n '->groupByRaw\s*\(' $TARGETS --glob '*.php' || true
+rg -n -e '->whereRaw\s*\(' --glob '*.php' $TARGETS || true
+rg -n -e '->selectRaw\s*\(' --glob '*.php' $TARGETS || true
+rg -n -e '->orderByRaw\s*\(' --glob '*.php' $TARGETS || true
+rg -n -e '->havingRaw\s*\(' --glob '*.php' $TARGETS || true
+rg -n -e '->groupByRaw\s*\(' --glob '*.php' $TARGETS || true
 
 echo ""
 echo "=== Direct Superglobal Access (bypassing Laravel Request) ==="
