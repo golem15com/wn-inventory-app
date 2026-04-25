@@ -2,7 +2,7 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          backupGlobals="false"
          backupStaticAttributes="false"
-         bootstrap="./modules/system/tests/bootstrap/app.php"
+         bootstrap="./tests/bootstrap.php"
          colors="true"
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
@@ -29,6 +29,54 @@
             <directory>./modules/system</directory>
             <directory>./modules/cms</directory>
             <directory>./modules/backend</directory>
+        </testsuite>
+        <testsuite name="Golem15.Apparatus">
+            <directory>./plugins/golem15/apparatus/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.PaymentGateway">
+            <directory>./plugins/golem15/paymentgateway/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.User">
+            <directory>./plugins/golem15/user/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.Translate">
+            <directory>./plugins/golem15/translate/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.Backend">
+            <directory>./plugins/golem15/backend/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.Chat">
+            <directory>./plugins/golem15/chat/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.DualFormWidget">
+            <directory>./plugins/golem15/dualformwidget/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.FAQ">
+            <directory>./plugins/golem15/faq/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.GitHub">
+            <directory>./plugins/golem15/github/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.Golem">
+            <directory>./plugins/golem15/golem/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.Journal">
+            <directory>./plugins/golem15/journal/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.KnobWidget">
+            <directory>./plugins/golem15/knobwidget/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.PgStripe">
+            <directory>./plugins/golem15/pgstripe/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.Quote">
+            <directory>./plugins/golem15/quote/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.Sitemap">
+            <directory>./plugins/golem15/sitemap/tests</directory>
+        </testsuite>
+        <testsuite name="Golem15.WebSockets">
+            <directory>./plugins/golem15/websockets/tests</directory>
         </testsuite>
     </testsuites>
     <php>
