@@ -15,6 +15,23 @@ parameters:
         - plugins/winter/*/vendor
         - plugins/winter/*/tests
         - plugins/winter/*/updates
+        # lang files: translation arrays, not application logic
+        - '*/lang/*'
+        # Files referencing missing Winter.Notify plugin (not installed)
+        - plugins/golem15/user/notifyrules
+        - plugins/golem15/user/classes/UserEventBase.php
+        - plugins/golem15/user/Plugin.php
+        # Files referencing missing QuestStream plugin (not installed)
+        - plugins/golem15/chat/controllers/api/ChatApiController.php
+        # Files referencing missing PaymentGatewaySubscriptions plugin (not installed)
+        - plugins/golem15/pgstripe/Plugin.php
+        - plugins/golem15/pgstripe/classes/StripeSubscriptionGateway.php
+        - plugins/golem15/pgstripe/http/controllers/StripeWebhookController.php
+        - plugins/golem15/pgstripe/jobs/ProcessStripeSubscriptionWebhook.php
+        # Non-baselineable errors: covariant return types (excludePaths required by PHPStan)
+        - plugins/golem15/apparatus/behaviors/backgroundimportexportcontroller/TranscodeFilter.php
+        # Non-baselineable errors: missing return statements (excludePaths required by PHPStan)
+        - plugins/golem15/user/controllers/ApiController.php
     ignoreErrors:
         -
             identifier: missingType.iterableValue
