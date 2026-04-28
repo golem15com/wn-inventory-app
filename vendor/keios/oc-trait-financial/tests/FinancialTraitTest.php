@@ -5,8 +5,8 @@ use Keios\Financial\Financial;
 /**
  * PoC tests for PAY-13 (OTF-001): Financial trait per-class boot tracking.
  *
- * The trait uses a single static $financialTraitAlreadyBooted boolean,
- * which means the SECOND class using the trait skips boot entirely --
+ * The trait uses a single static boolean, which when shared through an inheritance
+ * hierarchy means the SECOND child class using the trait skips boot entirely --
  * leaving model.beforeSetAttribute UNBOUND for that class.
  *
  * These tests MUST FAIL (RED) before the fix is applied and PASS (GREEN) after.
@@ -16,12 +16,18 @@ use Keios\Financial\Financial;
 class FinancialTraitTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * PAY-13: Two distinct model classes using the Financial trait must both
-     * successfully boot and register their event listeners independently.
+     * PAY-13: Two sibling classes inheriting the Financial trait from a common
+     * base must both successfully boot and register their event listeners.
      *
-     * Before fix: the second class skips boot because static $financialTraitAlreadyBooted
-     * is already true from the first class's boot. After fix: per-class tracking via
-     * static $financialTraitBootedFor allows each class to boot independently.
+     * In WinterCMS, Payment and Order both extend Model and use the Financial
+     * trait. PHP shares static properties through inheritance, so the single
+     * boolean flag set by the first child causes the second child to skip boot.
+     *
+     * Before fix: static::$financialTraitAlreadyBooted is set to true by the
+     * first class, and the second class returns early without binding events.
+     *
+     * After fix: per-class tracking via static::$financialTraitBootedFor[$class]
+     * allows each class in the hierarchy to boot independently.
      *
      * @test
      */
@@ -30,44 +36,29 @@ class FinancialTraitTest extends \PHPUnit\Framework\TestCase
         // Reset the boot state via reflection so test is isolated
         $this->resetBootState();
 
-        // Call bootFinancial on the first stub class
-        FinancialModelStubA::bootFinancial();
+        // Track which classes successfully completed boot (called extend())
+        FinancialBaseStub::$extendCalledBy = [];
 
-        // Call bootFinancial on the second stub class
-        FinancialModelStubB::bootFinancial();
+        // Call bootFinancial on the first child class
+        FinancialChildStubA::bootFinancial();
 
-        // After fix: both classes should be registered in $financialTraitBootedFor
-        // Before fix: only the first class sets $financialTraitAlreadyBooted = true,
-        // the second class returns early and never registers its listeners.
+        // Call bootFinancial on the second child class
+        FinancialChildStubB::bootFinancial();
 
-        // Use reflection to read the boot tracking property
-        $reflection = new \ReflectionClass(FinancialModelStubA::class);
-
-        // After fix, the property should be $financialTraitBootedFor (array)
-        // Before fix, the property is $financialTraitAlreadyBooted (bool)
-        if ($reflection->hasProperty('financialTraitBootedFor')) {
-            $prop = $reflection->getProperty('financialTraitBootedFor');
-            $prop->setAccessible(true);
-            $bootedFor = $prop->getValue();
-
-            $this->assertArrayHasKey(
-                FinancialModelStubA::class,
-                $bootedFor,
-                'PAY-13: First class should be registered in $financialTraitBootedFor'
-            );
-            $this->assertArrayHasKey(
-                FinancialModelStubB::class,
-                $bootedFor,
-                'PAY-13: Second class should be registered in $financialTraitBootedFor but was skipped due to single-boolean boot guard'
-            );
-        } else {
-            // Pre-fix: property is $financialTraitAlreadyBooted (single boolean)
-            // This means per-class tracking is not implemented yet -- FAIL
-            $this->fail(
-                'PAY-13: Financial trait still uses single $financialTraitAlreadyBooted boolean. '
-                . 'Per-class boot tracking via $financialTraitBootedFor is required.'
-            );
-        }
+        // After fix: both classes call extend() and register their listeners
+        // Before fix: only ChildStubA calls extend(), ChildStubB returns early
+        $this->assertContains(
+            FinancialChildStubA::class,
+            FinancialBaseStub::$extendCalledBy,
+            'PAY-13: First child class should have called extend() during boot'
+        );
+        $this->assertContains(
+            FinancialChildStubB::class,
+            FinancialBaseStub::$extendCalledBy,
+            'PAY-13: Second child class should have called extend() during boot, '
+            . 'but was skipped because the single-boolean boot guard was already true '
+            . 'from the first child\'s boot. Per-class tracking required.'
+        );
     }
 
     /**
@@ -75,7 +66,8 @@ class FinancialTraitTest extends \PHPUnit\Framework\TestCase
      */
     private function resetBootState(): void
     {
-        $reflection = new \ReflectionClass(FinancialModelStubA::class);
+        // Reset on the base class -- children share the static property through inheritance
+        $reflection = new \ReflectionClass(FinancialBaseStub::class);
 
         if ($reflection->hasProperty('financialTraitBootedFor')) {
             $prop = $reflection->getProperty('financialTraitBootedFor');
@@ -92,13 +84,16 @@ class FinancialTraitTest extends \PHPUnit\Framework\TestCase
 }
 
 /**
- * Minimal stub class A using the Financial trait.
- * Uses a minimal extend() static method to satisfy the trait's boot requirements
- * without needing the full WinterCMS model infrastructure.
+ * Base stub that uses the Financial trait, simulating a WinterCMS Model base.
+ * In the real codebase, multiple models (Payment, Order) extend a common base
+ * and share the static property through inheritance.
  */
-class FinancialModelStubA
+class FinancialBaseStub
 {
     use Financial;
+
+    /** @var string[] Track which classes called extend() during boot */
+    public static $extendCalledBy = [];
 
     protected $financial = [
         'price' => ['balance' => 'amount_stored', 'currency' => 'currency'],
@@ -107,32 +102,31 @@ class FinancialModelStubA
     protected $attributes = [];
 
     /**
-     * Stub for WinterCMS Model::extend() used by Financial trait's bootFinancial().
+     * Stub for WinterCMS Model::extend(). Records the calling class
+     * so the test can verify both children booted successfully.
      */
     public static function extend(callable $callback): void
     {
-        // No-op for test purposes -- we only need boot registration to succeed
+        static::$extendCalledBy[] = static::class;
     }
 }
 
 /**
- * Minimal stub class B using the Financial trait.
+ * Child stub A -- simulates Payment model.
  */
-class FinancialModelStubB
+class FinancialChildStubA extends FinancialBaseStub
 {
-    use Financial;
+    protected $financial = [
+        'amount' => ['balance' => 'amount_stored', 'currency' => 'currency'],
+    ];
+}
 
+/**
+ * Child stub B -- simulates Order model.
+ */
+class FinancialChildStubB extends FinancialBaseStub
+{
     protected $financial = [
         'total' => ['balance' => 'total_stored', 'currency' => 'total_currency'],
     ];
-
-    protected $attributes = [];
-
-    /**
-     * Stub for WinterCMS Model::extend() used by Financial trait's bootFinancial().
-     */
-    public static function extend(callable $callback): void
-    {
-        // No-op for test purposes
-    }
 }
