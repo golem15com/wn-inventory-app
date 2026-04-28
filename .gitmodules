@@ -46,9 +46,6 @@
 	path = plugins/golem15/websockets
 	url = git@github.com:golem15com/wn-websockets-plugin.git
 	branch = master
-[submodule "plugins/winter/redirect"]
-	path = plugins/winter/redirect
-	url = https://github.com/wintercms/wn-redirect-plugin.git
 [submodule "plugins/winter/pages"]
 	path = plugins/winter/pages
 	url = https://github.com/wintercms/wn-pages-plugin.git
