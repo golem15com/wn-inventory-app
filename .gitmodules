@@ -71,3 +71,9 @@
 [submodule "plugins/golem15/backend"]
 	path = plugins/golem15/backend
 	url = git@github.com:golem15com/wn-backend-plugin.git
+[submodule "plugins/golem15/userfriends"]
+	path = plugins/golem15/userfriends
+	url = git@github.com:golem15com/wn-userfriends-plugin.git
+[submodule "plugins/golem15/chatvideo"]
+	path = plugins/golem15/chatvideo
+	url = git@github.com:golem15com/wn-chatvideo-plugin.git
