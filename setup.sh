@@ -82,7 +82,11 @@ fi
 
 echo ""
 echo "==> Installing composer dependencies (pass 1 - root deps)..."
-$COMPOSER install --no-interaction --no-scripts
+# composer.lock is gitignored, so on a fresh clone or after a composer.json
+# change (e.g. branch switch) it may be stale/absent. `composer install` aborts
+# on a mismatched lock; fall back to `update` so pass 1 self-heals instead of
+# killing the script via `set -e` before pass 2 can run.
+$COMPOSER install --no-interaction --no-scripts || $COMPOSER update --no-interaction --no-scripts
 
 echo ""
 echo "==> Installing composer dependencies (pass 2 - plugin deps via merge plugin)..."
