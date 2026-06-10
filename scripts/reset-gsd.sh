@@ -169,7 +169,7 @@ progress:
 
 # Project State
 
-This project was reset from the Golem15 starter stack (see STARTER-LINEAGE.md).
+This project was reset from the Golem15 starter stack (see the lineage marker).
 Run /gsd-new-project to author your client's first milestone.
 STATE_EOF"
 
@@ -191,7 +191,7 @@ fi
 echo ""
 echo "=== Reset complete ==="
 echo ".planning/ retains config.json + empty STATE.md + codebase/ + research/."
-echo "Starter docs archived to .planning/archive/starter-stack/; lineage in .planning/STARTER-LINEAGE.md."
+echo "Starter docs archived to .planning/archive/starter-stack/; lineage recorded in .planning/ (see the lineage marker written in step 3)."
 echo "Run /gsd-new-project to author your client's first milestone."
 if [ "$DRY_RUN" = "1" ]; then
     echo "(dry-run: nothing was actually created, moved, or deleted.)"
