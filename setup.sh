@@ -8,6 +8,8 @@ set -e
 #   ./setup.sh                          # defaults: sqlite, admin/admin
 #   DB_CONNECTION=mysql ./setup.sh      # use mysql instead
 #   ADMIN_PASSWORD=secret ./setup.sh    # custom admin password
+#   ./setup.sh --reset                  # GSD-reset starter, then install
+#   RESET=1 ./setup.sh                  # same via env var
 #
 # Environment variables (all optional, defaults in .env.example):
 #   DB_CONNECTION, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD
@@ -25,6 +27,21 @@ echo "Using: $PHP ($($PHP -r 'echo PHP_VERSION;'))"
 # Suppress E_DEPRECATED warnings from vendor code (Laravel 9.x on PHP 8.4+)
 # 8191 = E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED
 ARTISAN="$PHP -d error_reporting=8191 artisan"
+
+# --- GSD reset early gate (D-13) ---------------------------------------------
+# Run scripts/reset-gsd.sh BEFORE submodule init / composer, since reset
+# reshapes the repo the rest of setup operates on. reset-gsd.sh owns its own
+# freshness guard; under `set -e` a refused reset (exit 1) aborts setup.
+RESET="${RESET:-0}"
+for arg in "$@"; do
+    [ "$arg" = "--reset" ] && RESET=1
+done
+
+if [ "$RESET" = "1" ]; then
+    echo ""
+    echo "==> Running GSD reset before install..."
+    bash "$(dirname "$0")/scripts/reset-gsd.sh"
+fi
 
 # --- Git submodules ----------------------------------------------------------
 
