@@ -21,7 +21,7 @@
 [submodule "plugins/golem15/paymentgateway"]
 	path = plugins/golem15/paymentgateway
 	url = git@github.com:golem15com/wn-paymentgateway-plugin.git
-	branch = upgrade
+	branch = master
 [submodule "plugins/golem15/pgstripe"]
 	path = plugins/golem15/pgstripe
 	url = git@github.com:golem15com/wn-pgstripe-plugin.git
