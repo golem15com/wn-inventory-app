@@ -19,7 +19,7 @@
 
 Golem15 Starter is the foundation we use to build and ship every project at [Golem15](https://golem15.com). It extends [WinterCMS](https://wintercms.com) (Laravel 9.x) with a curated set of plugins for payments, authentication, real-time features, AI, multilingual content, and more.
 
-Instead of wiring up the same infrastructure for every new project, you clone this starter, run `./setup.sh`, and start building features.
+Instead of wiring up the same infrastructure for every new project, you clone this starter, run `./backend-init.sh`, and start building features. (For provisioning a brand-new client project end to end, `./setup.sh` is the scaffold orchestrator — see [Setup options](#setup-options).)
 
 **Projects built on this stack include:** personal portfolio APIs, automotive marketplaces, Bible quote apps, gaming communities, genealogy trees, e-commerce stores, travel guides, horoscope portals, language tools, mushroom identification sites, trade professional directories, taxi services, and tax management systems.
 
@@ -33,8 +33,8 @@ git clone <your-fork-url> my-project
 cd my-project
 git submodule update --init --recursive
 
-# 2. One-command setup (SQLite by default, zero config)
-./setup.sh
+# 2. One-command local install (SQLite by default, zero config)
+./backend-init.sh
 
 # 3. Start developing
 php artisan serve
@@ -44,20 +44,26 @@ That's it. Open `http://localhost:8000` for the frontend and `/backend` for the 
 
 ### Setup options
 
-All options are environment variables - no interactive prompts:
+The local installer (`./backend-init.sh`) takes all options as environment variables - no interactive prompts:
 
 ```bash
 # Use MySQL instead of SQLite
-DB_CONNECTION=mysql DB_DATABASE=mydb DB_USERNAME=root ./setup.sh
+DB_CONNECTION=mysql DB_DATABASE=mydb DB_USERNAME=root ./backend-init.sh
 
 # Custom admin credentials
-ADMIN_PASSWORD=secret ADMIN_EMAIL=me@example.com ./setup.sh
+ADMIN_PASSWORD=secret ADMIN_EMAIL=me@example.com ./backend-init.sh
 
 # Different PHP binary
-PHP=php83 COMPOSER=composer83 ./setup.sh
+PHP=php83 COMPOSER=composer83 ./backend-init.sh
 ```
 
-### What `setup.sh` does
+For provisioning a fresh client project (reset the stack, repoint the backend origin, then
+install backend + scaffold the Vue frontend), use the `./setup.sh` orchestrator instead. Run
+it bare for interactive prompts, or pass flags (`--name`, `--backend-repo`, `--frontend-repo`,
+`--db`, `--admin-*`, `--no-frontend`, `--dry-run`). The frontend/branch helpers live under
+`scripts/` (`scripts/frontend-init.sh`, `scripts/all-develop.sh`).
+
+### What `backend-init.sh` does
 
 1. Initializes git submodules (all plugins)
 2. Creates `.env` from `.env.example`
@@ -114,9 +120,6 @@ Every plugin is a **git submodule** with its own repository, versioning, and com
 
 | Plugin | Purpose |
 |--------|---------|
-| **[Winter.Pages](plugins/winter/pages)** | Static page management |
-| **[Winter.Blocks](plugins/winter/blocks)** | Content block system |
-| **[Winter.Redirect](plugins/winter/redirect)** | URL redirect management |
 | **[Winter.Location](plugins/winter/location)** | Country & state data |
 | **[Winter.Debugbar](plugins/winter/debugbar)** | Debug toolbar for development |
 
@@ -139,10 +142,12 @@ User ──────────────────┼──── WebSo
 ├── modules/                # WinterCMS core (system, backend, cms)
 ├── plugins/
 │   ├── golem15/            # 15 Golem15 plugins (git submodules)
-│   └── winter/             # 5 Winter plugins (git submodules)
+│   └── winter/             # 2 Winter plugins (debugbar, location) (git submodules)
 ├── themes/                 # CMS themes
 ├── storage/                # Cache, logs, uploads, SQLite DB
-├── setup.sh                # One-command project setup
+├── backend-init.sh         # One-command local install
+├── setup.sh                # Client-scaffold orchestrator
+├── scripts/                # Helpers (frontend-init.sh, all-develop.sh, reset-gsd.sh, ...)
 ├── CLAUDE.md               # AI assistant instructions
 └── composer.json            # Root deps + plugin merge config
 ```

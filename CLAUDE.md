@@ -11,11 +11,18 @@ This is a **Golem15 Stack** starter project built on **WinterCMS** (Laravel-base
 ### Environment Setup
 
 ```bash
-# One-command setup (non-interactive, defaults to sqlite)
-./setup.sh
+# Local install (non-interactive, defaults to sqlite)
+./backend-init.sh
 
 # Or with env var overrides
-DB_CONNECTION=mysql DB_DATABASE=mydb ADMIN_PASSWORD=secret ./setup.sh
+DB_CONNECTION=mysql DB_DATABASE=mydb ADMIN_PASSWORD=secret ./backend-init.sh
+
+# Client-scaffold orchestrator (interactive, or flag-driven):
+# resets the stack -> repoints backend origin -> backend-init.sh -> scripts/frontend-init.sh.
+# Bare `./setup.sh` is interactive; blank repos fall through to a local install with no reset.
+./setup.sh
+
+# Helper scripts live in scripts/ (frontend-init.sh, all-develop.sh, reset-gsd.sh)
 
 # Manual commands
 php artisan <command>
@@ -73,7 +80,7 @@ php artisan websockets:test-push
 
 All plugins are managed as git submodules for independent version control:
 - **19 Golem15 plugins** in `plugins/golem15/`
-- **5 Winter plugins** in `plugins/winter/` (redirect, pages, debugbar, blocks, location)
+- **2 Winter plugins** in `plugins/winter/` (debugbar, location)
 
 ```bash
 # Initial setup after cloning this repository

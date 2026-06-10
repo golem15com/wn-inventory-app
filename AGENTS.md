@@ -7,7 +7,8 @@ This repository is a WinterCMS application built on Laravel 9 and organized arou
 Use the documented setup flow before making changes:
 
 ```bash
-./setup.sh              # install deps, prepare .env, initialize app
+./backend-init.sh       # install deps, prepare .env, initialize app (local install)
+# ./setup.sh            # client-scaffold orchestrator (reset + repoint + backend + frontend)
 php artisan serve       # run local dev server
 vendor/bin/phpunit      # run PHPUnit suites directly
 composer lint           # parallel PHP syntax lint
