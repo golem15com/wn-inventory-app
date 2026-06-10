@@ -79,3 +79,6 @@
 	path = plugins/golem15/chatvideo
 	url = git@github.com:golem15com/wn-chatvideo-plugin.git
 	branch = master
+[submodule "vue-starter-app"]
+	path = vue-starter-app
+	url = git@github.com:golem15com/vue-starter-app.git
