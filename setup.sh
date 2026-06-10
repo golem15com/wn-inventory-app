@@ -8,11 +8,14 @@ cd "$(dirname "$0")"
 # The single documented entry point for spinning up a new client project from
 # the Golem15 starter stack. In SCAFFOLD mode it chains four steps (D-01):
 #
-#   1. scripts/reset-gsd.sh           — reset the starter into a fresh GSD client
+#   1. git remote set-url origin ...  — re-point the SUPERPROJECT (backend) git
+#                                        origin at --backend-repo. MUST precede the
+#                                        reset: reset-gsd.sh refuses while origin
+#                                        still points at the starter.
+#   2. scripts/reset-gsd.sh           — reset the starter into a fresh GSD client
 #                                        project (guarded; refuses the canonical
-#                                        starter origin / non-empty remote).
-#   2. git remote set-url origin ...  — re-point the SUPERPROJECT (backend) git
-#                                        origin at --backend-repo.
+#                                        starter origin / non-empty remote — now
+#                                        satisfied because step 1 repointed it).
 #   3. backend-init.sh                — composer install, migrate, admin seed,
 #                                        mirror (DB_*/ADMIN_* forwarded as env).
 #   4. scripts/frontend-init.sh       — scaffold the Vue frontend submodule from
@@ -156,23 +159,29 @@ if [ -z "$NAME" ] || [ -z "$BACKEND_REPO" ]; then
 fi
 echo "Guard passed: name='$NAME', backend-repo='$BACKEND_REPO', frontend-repo='${FRONTEND_REPO:-(none)}'."
 
-# --- STEP 1: RESET (implicit, guarded, D-04) ---------------------------------
+# --- STEP 1: BACKEND ORIGIN REPOINT (D-01) -----------------------------------
+# Re-point the SUPERPROJECT origin to --backend-repo. This MUST happen BEFORE the
+# reset (step 2): scripts/reset-gsd.sh's freshness guard refuses while origin
+# still points at the starter (`*wn-starter-app*`) and requires an EMPTY remote.
+# Repointing first means reset-gsd sees the fresh, empty client origin and passes.
+# Print-only under --dry-run (D-05): the repoint goes through run(), which echoes
+# instead of executing — so a full-chain --dry-run will stop at the step-2 guard
+# (origin was never actually moved); preview the reset standalone if needed.
+echo ""
+echo "==> Step 1: re-point the superproject (backend) origin to '$BACKEND_REPO'"
+run git remote set-url origin "$BACKEND_REPO"
+
+# --- STEP 2: RESET (implicit, guarded, D-04) ---------------------------------
 # Delegate to scripts/reset-gsd.sh; do NOT bypass its origin/empty-remote guard.
+# Origin was repointed to the empty client repo in step 1, so the guard passes.
 # Propagate --dry-run. Under `set -e` a refused reset aborts setup.
 echo ""
-echo "==> Step 1: reset starter into a fresh client project (scripts/reset-gsd.sh)"
+echo "==> Step 2: reset starter into a fresh client project (scripts/reset-gsd.sh)"
 run bash scripts/reset-gsd.sh "${DRY_ARGS[@]}"
-
-# --- STEP 2: BACKEND ORIGIN REPOINT (D-01) -----------------------------------
-# Re-point the SUPERPROJECT origin to --backend-repo. Print-only under --dry-run
-# (D-05): the repoint goes through run(), which echoes instead of executing.
-echo ""
-echo "==> Step 2: re-point the superproject (backend) origin to '$BACKEND_REPO'"
-run git remote set-url origin "$BACKEND_REPO"
 
 # --- STEP 3: BACKEND INSTALL (D-01) ------------------------------------------
 # Forward --db/--admin-* into backend-init.sh as env vars. Print-only under
-# --dry-run. Do NOT pass --reset — the reset already ran in step 1.
+# --dry-run. Do NOT pass --reset — the reset already ran in step 2.
 echo ""
 echo "==> Step 3: install the backend (backend-init.sh)"
 # Build an env-prefix argv (no eval, no quoted-string assembly). Values land as
