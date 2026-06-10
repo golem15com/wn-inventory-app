@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-    <strong>15 custom plugins</strong> &middot; <strong>One-command setup</strong> &middot; <strong>19+ production sites and counting</strong>
+    <strong>18 custom plugins</strong> &middot; <strong>One-command setup</strong> &middot; <strong>19+ production sites and counting</strong>
 </p>
 
 ---
@@ -99,6 +99,7 @@ Every plugin is a **git submodule** with its own repository, versioning, and com
 | **[FAQ](plugins/golem15/faq)** | `icon-question-circle` | FAQ management with backend editor and frontend component. |
 | **[Sitemap](plugins/golem15/sitemap)** | `icon-sitemap` | XML sitemap generation with definition editor and multilingual support. |
 | **[Translate](plugins/golem15/translate)** | `icon-language` | Full multilingual system - locale picker, message translation, 9 multilingual form widgets, AI-powered translation helpers, theme/page/mail template translation. |
+| **[Journal](plugins/golem15/journal)** | `icon-book` | Headless-capable blog/content system - posts, categories, RSS, JSON API (`/_journal/api/v1`), multilingual, menu-item integration. Powers the Vue starter's blog. |
 | **[Quote](plugins/golem15/quote)** | `icon-leaf` | AI-powered quote generation with scheduled daily generation and frontend display component. |
 
 ### Real-time & Communication
@@ -107,13 +108,15 @@ Every plugin is a **git submodule** with its own repository, versioning, and com
 |--------|------|-------------|
 | **[WebSockets](plugins/golem15/websockets)** | `icon-bolt` | Real-time communication via Centrifugo. Broadcasting, channel authorization, push notifications with VAPID keys. |
 | **[Chat](plugins/golem15/chat)** | `icon-comments` | Real-time chat with decoupled context providers, channel management, and adapter registration for external plugins. |
+| **[ChatVideo](plugins/golem15/chatvideo)** | `icon-video-camera` | Video-call layer on top of Chat - WebRTC signaling over Centrifugo channels. |
+| **[UserFriends](plugins/golem15/userfriends)** | `icon-users` | Social graph for User - friend requests, acceptance, and relationship management. |
 
 ### Developer Tools & Integrations
 
 | Plugin | Icon | Description |
 |--------|------|-------------|
 | **[GitHub](plugins/golem15/github)** | `icon-github` | GitHub API integration - fetch issues/PRs, start work, close issues from the command line. |
-| **[DualFormField](plugins/golem15/dualformfield)** | `icon-leaf` | Dual input form widget for paired values in backend forms. |
+| **[DualFormWidget](plugins/golem15/dualformwidget)** | `icon-leaf` | Dual input form widget for paired values in backend forms. |
 | **[KnobWidget](plugins/golem15/knobwidget)** | `icon-cog` | Knob/dial form widget for numeric input with AJAX handler support. |
 
 ### Bundled Winter Plugins
@@ -141,7 +144,7 @@ User ──────────────────┼──── WebSo
 ├── config/                 # App configuration
 ├── modules/                # WinterCMS core (system, backend, cms)
 ├── plugins/
-│   ├── golem15/            # 15 Golem15 plugins (git submodules)
+│   ├── golem15/            # 18 Golem15 plugins (git submodules)
 │   └── winter/             # 2 Winter plugins (debugbar, location) (git submodules)
 ├── themes/                 # CMS themes
 ├── storage/                # Cache, logs, uploads, SQLite DB
@@ -201,7 +204,7 @@ php artisan apparatus:mail-reset
 
 ## Working with Submodules (SSU)
 
-This project manages 20 git submodules. We strongly recommend [**SSU**](https://ssu.pxpx.co.uk) (Smart Submodule Updater) instead of raw git commands - it handles branch detection, conflict resolution, parallel fetching, and automatic backups.
+This project manages 21 git submodules (18 Golem15 plugins, 2 Winter plugins, and the `vue-starter-app` frontend). We strongly recommend [**SSU**](https://ssu.pxpx.co.uk) (Smart Submodule Updater) instead of raw git commands - it handles branch detection, conflict resolution, parallel fetching, and automatic backups.
 
 ### Install SSU
 
@@ -225,7 +228,7 @@ ssu status
 │plugins/golem15/apparatus             │develop        │0            │current       │
 │plugins/golem15/paymentgateway        │develop        │3            │behind        │
 │plugins/golem15/user                  │develop        │0            │current       │
-│plugins/winter/redirect               │main           │1            │ahead         │
+│plugins/golem15/journal               │master         │2            │behind        │
 └──────────────────────────────────────┴───────────────┴─────────────┴──────────────┘
 ```
 
