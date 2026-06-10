@@ -73,11 +73,17 @@ while [ $# -gt 0 ]; do
 done
 
 # run(): route every mutating step through here so --dry-run touches nothing.
+# Arguments are passed as a real argv (NOT through eval) so operator-supplied
+# values — client name, repo URL — are never re-parsed as shell. Each sed below
+# splices its variable in as a single literal argv token. `%q` keeps the dry-run
+# preview faithful and safe.
 run() {
     if [ "$DRY_RUN" = "1" ]; then
-        echo "[dry-run] would: $*"
+        printf '[dry-run] would:'
+        printf ' %q' "$@"
+        printf '\n'
     else
-        eval "$@"
+        "$@"
     fi
 }
 
@@ -156,32 +162,32 @@ echo "==> Step 3: rename app identifiers (slug + display name)"
 
 # package.json "name" (load-bearing)
 if [ -f "$SUBMODULE/package.json" ]; then
-    run "sed -i -E 's/(\"name\"[[:space:]]*:[[:space:]]*\")vue-starter-app(\")/\\1$NAME\\2/' \"$SUBMODULE/package.json\""
+    run sed -i -E 's/("name"[[:space:]]*:[[:space:]]*")vue-starter-app(")/\1'"$NAME"'\2/' "$SUBMODULE/package.json"
 fi
 
 # README title (first-line H1)
 if [ -f "$SUBMODULE/README.md" ]; then
-    run "sed -i -E '1s/^# vue-starter-app[[:space:]]*$/# $NAME/' \"$SUBMODULE/README.md\""
+    run sed -i -E '1s/^# vue-starter-app[[:space:]]*$/# '"$NAME"'/' "$SUBMODULE/README.md"
 fi
 
 # nuxt.config.ts site.name + app.head.title (display name).
 # NOTE: this rewrites the CLIENT's checkout at scaffold time — frontend-init.sh
 # is not the starter's 17-01 single-owner; it mutates a fork.
 if [ -f "$SUBMODULE/nuxt.config.ts" ]; then
-    run "sed -i \"s/Vue Starter App/$DISPLAY_NAME/g\" \"$SUBMODULE/nuxt.config.ts\""
+    run sed -i "s/Vue Starter App/$DISPLAY_NAME/g" "$SUBMODULE/nuxt.config.ts"
 fi
 
 # i18n welcome strings (display name) — en + pl.
 for loc in en pl; do
     LOC_FILE="$SUBMODULE/i18n/locales/$loc.json"
     if [ -f "$LOC_FILE" ]; then
-        run "sed -i \"s/Vue Starter App/$DISPLAY_NAME/g\" \"$LOC_FILE\""
+        run sed -i "s/Vue Starter App/$DISPLAY_NAME/g" "$LOC_FILE"
     fi
 done
 
 # .env.example header comment (slug).
 if [ -f "$SUBMODULE/.env.example" ]; then
-    run "sed -i -E 's/^# vue-starter-app /# $NAME /' \"$SUBMODULE/.env.example\""
+    run sed -i -E 's/^# vue-starter-app /# '"$NAME"' /' "$SUBMODULE/.env.example"
 fi
 
 echo "  Renamed: package.json name, README title, nuxt.config (site.name + head title),"
@@ -190,7 +196,7 @@ echo "  i18n en/pl welcome strings, .env.example header."
 # --- STEP 4: RE-POINT SUBMODULE ORIGIN --------------------------------------
 echo ""
 echo "==> Step 4: re-point the $SUBMODULE submodule origin to the client repo"
-run "git -C \"$SUBMODULE\" remote set-url origin \"$REPO\""
+run git -C "$SUBMODULE" remote set-url origin "$REPO"
 
 # --- STEP 5: SYNC SUPERPROJECT .gitmodules ----------------------------------
 # Rewrite ONLY the vue-starter-app submodule's `url =` line, then propagate the
@@ -200,8 +206,8 @@ echo "==> Step 5: update superproject .gitmodules url + git submodule sync"
 # Replace the url line that follows the vue-starter-app path declaration. The
 # submodule's url is the only one pointing at vue-starter-app, so a targeted
 # substitution on that exact url is safe and unambiguous.
-run "sed -i -E 's#(url = ).*golem15com/vue-starter-app\\.git#\\1$REPO#' .gitmodules"
-run "git submodule sync --recursive \"$SUBMODULE\""
+run sed -i -E 's#(url = ).*golem15com/vue-starter-app\.git#\1'"$REPO"'#' .gitmodules
+run git submodule sync --recursive "$SUBMODULE"
 
 # --- STEP 6: CLOSING NEXT-STEP BLOCK ----------------------------------------
 echo ""

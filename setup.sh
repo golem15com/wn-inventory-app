@@ -93,17 +93,23 @@ while [ $# -gt 0 ]; do
 done
 
 # run(): route every mutating step through here so --dry-run touches nothing.
+# Arguments are passed as a real argv (NOT through eval) so operator-supplied
+# values — repo URLs, admin password, client name, interactive input — are never
+# re-parsed as shell. `%q` quoting keeps the dry-run preview faithful and safe.
 run() {
     if [ "$DRY_RUN" = "1" ]; then
-        echo "[dry-run] would: $*"
+        printf '[dry-run] would:'
+        printf ' %q' "$@"
+        printf '\n'
     else
-        eval "$@"
+        "$@"
     fi
 }
 
-# DRY_FLAG is appended to sub-scripts that understand --dry-run.
-DRY_FLAG=""
-[ "$DRY_RUN" = "1" ] && DRY_FLAG=" --dry-run"
+# DRY_ARGS is forwarded to sub-scripts that understand --dry-run (empty array =
+# nothing forwarded). An array, not a string, so it expands as distinct argv.
+DRY_ARGS=()
+[ "$DRY_RUN" = "1" ] && DRY_ARGS=(--dry-run)
 
 echo "=== setup.sh ==="
 if [ "$DRY_RUN" = "1" ]; then
@@ -155,26 +161,28 @@ echo "Guard passed: name='$NAME', backend-repo='$BACKEND_REPO', frontend-repo='$
 # Propagate --dry-run. Under `set -e` a refused reset aborts setup.
 echo ""
 echo "==> Step 1: reset starter into a fresh client project (scripts/reset-gsd.sh)"
-run "bash scripts/reset-gsd.sh${DRY_FLAG}"
+run bash scripts/reset-gsd.sh "${DRY_ARGS[@]}"
 
 # --- STEP 2: BACKEND ORIGIN REPOINT (D-01) -----------------------------------
 # Re-point the SUPERPROJECT origin to --backend-repo. Print-only under --dry-run
 # (D-05): the repoint goes through run(), which echoes instead of executing.
 echo ""
 echo "==> Step 2: re-point the superproject (backend) origin to '$BACKEND_REPO'"
-run "git remote set-url origin \"$BACKEND_REPO\""
+run git remote set-url origin "$BACKEND_REPO"
 
 # --- STEP 3: BACKEND INSTALL (D-01) ------------------------------------------
 # Forward --db/--admin-* into backend-init.sh as env vars. Print-only under
 # --dry-run. Do NOT pass --reset — the reset already ran in step 1.
 echo ""
 echo "==> Step 3: install the backend (backend-init.sh)"
-BACKEND_ENV=""
-[ -n "$DB" ]             && BACKEND_ENV="$BACKEND_ENV DB_CONNECTION=\"$DB\""
-[ -n "$ADMIN_PASSWORD" ] && BACKEND_ENV="$BACKEND_ENV ADMIN_PASSWORD=\"$ADMIN_PASSWORD\""
-[ -n "$ADMIN_LOGIN" ]    && BACKEND_ENV="$BACKEND_ENV ADMIN_LOGIN=\"$ADMIN_LOGIN\""
-[ -n "$ADMIN_EMAIL" ]    && BACKEND_ENV="$BACKEND_ENV ADMIN_EMAIL=\"$ADMIN_EMAIL\""
-run "${BACKEND_ENV# }${BACKEND_ENV:+ }bash backend-init.sh"
+# Build an env-prefix argv (no eval, no quoted-string assembly). Values land as
+# literal env entries via `env NAME=value ... cmd`; empty array = no env prefix.
+BACKEND_ENV=()
+[ -n "$DB" ]             && BACKEND_ENV+=("DB_CONNECTION=$DB")
+[ -n "$ADMIN_PASSWORD" ] && BACKEND_ENV+=("ADMIN_PASSWORD=$ADMIN_PASSWORD")
+[ -n "$ADMIN_LOGIN" ]    && BACKEND_ENV+=("ADMIN_LOGIN=$ADMIN_LOGIN")
+[ -n "$ADMIN_EMAIL" ]    && BACKEND_ENV+=("ADMIN_EMAIL=$ADMIN_EMAIL")
+run env "${BACKEND_ENV[@]}" bash backend-init.sh
 
 # --- STEP 4: FRONTEND SCAFFOLD (D-01) ----------------------------------------
 # Skipped entirely with --no-frontend. Otherwise delegate to
@@ -186,7 +194,7 @@ elif [ -z "$FRONTEND_REPO" ]; then
     echo "==> Step 4: frontend scaffold SKIPPED (no --frontend-repo supplied)."
 else
     echo "==> Step 4: scaffold the frontend (scripts/frontend-init.sh)"
-    run "bash scripts/frontend-init.sh --name=\"$NAME\" --repo=\"$FRONTEND_REPO\"${DRY_FLAG}"
+    run bash scripts/frontend-init.sh --name="$NAME" --repo="$FRONTEND_REPO" "${DRY_ARGS[@]}"
 fi
 
 # --- CLOSING NEXT-STEP BLOCK -------------------------------------------------
