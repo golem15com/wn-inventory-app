@@ -117,4 +117,82 @@ run "git tag -l | xargs -r git tag -d"
 # Tags are cleared and docs archived via tracked git mv -- all history remains
 # recoverable.
 
-# (Doc archival + STATE/config fresh-reset added in Task 2 below.)
+# --- STEP 6: CREATE ARCHIVE DIR (D-05) --------------------------------------
+echo ""
+echo "==> Step 6: create archive directory"
+run "mkdir -p .planning/archive/starter-stack"
+
+# --- STEP 7: ARCHIVE THE STARTER DOC SET (D-04) -----------------------------
+# Move EXACTLY these into .planning/archive/starter-stack/ via tracked git mv
+# (D-05 requires tracked moves; D-11 keeps everything in history). Each move is
+# guarded by an existence check so partial states / re-runs do not hard-fail
+# under set -e, and each is routed through the dry-run helper.
+echo ""
+echo "==> Step 7: archive starter planning docs (tracked git mv)"
+ARCHIVE_TARGETS="PROJECT.md ROADMAP.md REQUIREMENTS.md MILESTONES.md RETROSPECTIVE.md phases audit debug quick milestones"
+for target in $ARCHIVE_TARGETS; do
+    if [ -e ".planning/$target" ]; then
+        run "git mv \".planning/$target\" .planning/archive/starter-stack/"
+    else
+        echo "  skip: .planning/$target not present"
+    fi
+done
+
+# --- STEP 8: KEEP SET LEFT UNTOUCHED (D-03) ---------------------------------
+# .planning/codebase/ and .planning/research/ describe the inherited stack and
+# stay in place. config.json and STATE.md also stay (they are reset in place
+# below, not archived).
+echo ""
+echo "==> Step 8: keep set untouched (codebase/, research/, config.json, STATE.md)"
+
+# --- STEP 9: RESET STATE.md FRESH (D-03/D-06) -------------------------------
+# Overwrite STATE.md with an empty/zeroed template so /gsd-new-project can
+# repopulate it for the client's first milestone.
+echo ""
+echo "==> Step 9: reset .planning/STATE.md to an empty template"
+run "cat > .planning/STATE.md <<STATE_EOF
+---
+gsd_state_version: 1.0
+milestone: null
+milestone_name: null
+status: fresh
+stopped_at: null
+last_updated: \"${RESET_DATE}\"
+last_activity: null
+progress:
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+---
+
+# Project State
+
+This project was reset from the Golem15 starter stack (see STARTER-LINEAGE.md).
+Run /gsd-new-project to author your client's first milestone.
+STATE_EOF"
+
+# --- STEP 10: RESET config.json FRESH (D-03/D-06) ---------------------------
+# Clear only clearly project-specific keys to framework default. project_code is
+# the sole project-specific key; the rest (model_profile, workflow.*, git.*,
+# mode, granularity) are framework defaults and are left intact. Idempotent
+# sed in the setup.sh set_env spirit; if project_code is already null, nothing
+# changes and we say so.
+echo ""
+echo "==> Step 10: reset config.json project-specific keys to framework default"
+if grep -Eq '"project_code"[[:space:]]*:[[:space:]]*null' .planning/config.json; then
+    echo "  config.json is already framework-default (project_code: null) -- leaving untouched."
+else
+    run "sed -i -E 's/(\"project_code\"[[:space:]]*:[[:space:]]*)[^,}]+/\1null/' .planning/config.json"
+fi
+
+# --- STEP 11: CLOSING NEXT-STEP BLOCK ---------------------------------------
+echo ""
+echo "=== Reset complete ==="
+echo ".planning/ retains config.json + empty STATE.md + codebase/ + research/."
+echo "Starter docs archived to .planning/archive/starter-stack/; lineage in .planning/STARTER-LINEAGE.md."
+echo "Run /gsd-new-project to author your client's first milestone."
+if [ "$DRY_RUN" = "1" ]; then
+    echo "(dry-run: nothing was actually created, moved, or deleted.)"
+fi
