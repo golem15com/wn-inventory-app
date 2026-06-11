@@ -115,6 +115,28 @@ echo ""
 echo "==> Generating application key..."
 $ARTISAN key:generate --force --no-interaction
 
+# --- JWT secret --------------------------------------------------------------
+# Golem15.User signs/verifies API auth tokens (login, /api/realtime/token, all
+# jwt.auth routes) with JWT_SECRET. Without it every JWT request fails with a 500
+# "Token Signature could not be verified" and realtime can never connect. The
+# .env ships JWT_SECRET empty, so generate it here. `jwt:secret` can silently
+# no-op on the .env writer under Winter, so verify and fall back to a direct
+# write.
+
+echo ""
+echo "==> Generating JWT secret..."
+$ARTISAN jwt:secret --force --no-interaction || true
+if ! grep -qE '^JWT_SECRET=.+' .env; then
+    echo "    (jwt:secret did not persist to .env — writing JWT_SECRET directly)"
+    JWT_SECRET_VALUE=$($PHP -r 'echo rtrim(strtr(base64_encode(random_bytes(48)), "+/", "__"), "=");')
+    if grep -qE '^JWT_SECRET=' .env; then
+        sed -i -E "s#^JWT_SECRET=.*#JWT_SECRET=${JWT_SECRET_VALUE}#" .env
+    else
+        printf 'JWT_SECRET=%s\n' "$JWT_SECRET_VALUE" >> .env
+    fi
+fi
+$ARTISAN config:clear >/dev/null 2>&1 || true
+
 # --- Directories -------------------------------------------------------------
 
 mkdir -p storage/temp/protected/paymentgateway
