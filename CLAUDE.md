@@ -239,3 +239,288 @@ Configure Laravel scheduler via cron:
 - File structure follows WinterCMS conventions: controllers, models, components in plugin root
 - Backend forms/lists configuration in `plugins/*/models/*/fields.yaml` and `columns.yaml`
 - Backend translation keys follow pattern: `plugin.namespace::lang.section.key`
+
+<!-- GSD:project-start source:PROJECT.md -->
+## Project
+
+**Inventory**
+
+A personal/household inventory catalog for physical things — cables, tools, batteries, devices — scattered across many places. You record **what** you own, **which category** it belongs to, and **where** it physically lives (a Location inside an Area), then find it instantly by searching instead of hunting through drawers, boxes, and cupboards. Built as a new `JZ\Inventory` plugin on the Golem15 stack, with a Vue SPA (`vue-inventory-app`) front-end and a fast, permission-scoped search powered by Typesense via Laravel Scout (reused from the Journal plugin).
+
+**Core Value:** Type the name of a thing and immediately see where it is — across every Area you have access to. If everything else fails, search-to-location must work.
+
+### Constraints
+
+- **Tech stack**: PHP >= 8.4, WinterCMS ~1.2 / Laravel 9.x backend; Vue SPA front-end — Golem15 stack standard, non-negotiable for core plugins.
+- **Plugin namespace**: `JZ\Inventory` in `plugins/jz/inventory` — submodule already created and registered in `.gitmodules`.
+- **Search**: Typesense via Laravel Scout, reusing the Journal plugin's infrastructure — avoid a second search stack.
+- **Security**: All access permission-scoped per-Area, enforced server-side including in search results — a user must never see another Area's items.
+- **Snowboard caveat**: WinterCMS Snowboard does not support `data-request-success` (use JS event handlers) — relevant only if any CMS-side JS is touched; the SPA is the primary front-end.
+- **Submodules**: Both plugin and Vue app are git submodules (use `ssu` for management); changes commit to their own repos plus a superproject reference bump.
+<!-- GSD:project-end -->
+
+<!-- GSD:stack-start source:codebase/STACK.md -->
+## Technology Stack
+
+## Languages
+- PHP >= 8.4 (project requirement; base composer.json declares `>=8.1` but chatvideo enforces `^8.4`)
+- Twig (CMS template engine via WinterCMS)
+- JavaScript (frontend themes, Snowboard framework, LiveKit client JS)
+## Runtime
+- PHP >= 8.4 (note: root `composer.json` declares `>=8.1`; runtime requirement is 8.4 per `plugins/golem15/chatvideo/composer.json` and `CLAUDE.md`)
+- Web server: Apache (.htaccess present) or any PHP-capable server
+- Composer (lockfile: `composer.lock` — present and committed)
+## Frameworks
+- WinterCMS ~1.2 — full CMS framework (forked from OctoberCMS)
+- Laravel 9.x (`^9.1`) — underlying HTTP framework, ORM, queues, events
+- PHPUnit ^9.5.8 (`composer test` / `php artisan winter:test`)
+- Mockery ^1.4.4 — mocking library
+- FakerPHP ^1.9.2 — test data generation
+- dms/phpunit-arraysubset-asserts ^0.1.0|^0.2.1 — extra assertion helpers
+- PHPStan ^1.12 + Larastan ^2.9 (config: `phpstan.neon`, baseline: `phpstan-baseline.neon`)
+- squizlabs/php_codesniffer ^3.2 (config: `phpcs.xml`, standard: PSR-1/PSR-2 with WinterCMS exceptions)
+- php-parallel-lint ^1.0 — syntax checking
+- enlightn/security-checker ^1.10 — dependency vulnerability scanning
+- pheromone/phpcs-security-audit ^2.0 — security pattern scanning
+- No dedicated frontend build toolchain in the PHP backend (themes build their own assets independently)
+- Wikimedia Composer Merge Plugin ~2.1.0 — auto-merges `plugins/*/*/composer.json` into root dependency tree
+- cweagans/composer-patches ^2.0 — applies `patches/winter-storm-php84-null-offset.patch` post-install/update
+## Key Dependencies
+- `keios/laravel-apparatus` dev-develop — Apparatus scenario/DI framework (private VCS: `git@github.com:golem15com/laravel-apparatus.git`)
+- `winter/storm` ~1.2.0 — Laravel buffer layer
+- `laravel/framework` ^9.1 — HTTP, ORM, queues, events
+- `keios/moneyright` ~1.0.9 — financial arithmetic (never float; requires `make_currencies.php` post-install)
+- `keios/oc-trait-financial` ~1.0@dev — financial trait (private: `https://github.com/golem15com/wn-financial-trait.git`)
+- `jms/serializer` ^3.0 — JMS Serializer for PaymentGateway metadata caching
+- `yohang/finite` 1.1.* — finite state machine (private VCS: `https://keiosweb@bitbucket.org/keiosweb/finite.git`)
+- `ramsey/uuid` 4.9.2 — UUID generation for payments
+- `moontoast/math` * — arbitrary precision math
+- `hashids/hashids` 5.* — ID obfuscation
+- `symfony/options-resolver` * — options resolution
+- `php-open-source-saver/jwt-auth` 1.* — JWT authentication guard
+- `firebase/php-jwt` ^5.0||^6.0||^7.0 — JWT token encoding/decoding (used by user, websockets, chatvideo)
+- `laravel/socialite` ^5.6 — OAuth provider (Google, Facebook, GitHub login)
+- `google/recaptcha` ^1.2 — form spam protection
+- `pragmarx/google2fa` ^8.0 — TOTP two-factor authentication
+- `bacon/bacon-qr-code` ^2.0 — QR code for 2FA setup
+- `lbuchs/webauthn` ^2.0 — WebAuthn/FIDO2 device authentication
+- `stripe/stripe-php` ^16.0 — Stripe SDK
+- `intervention/image` dev-main — image manipulation (Apparatus plugin)
+- `laravel/scout` ^10.0 — Laravel Scout search driver (Journal plugin)
+- `typesense/typesense-php` ^4.9 — Typesense search client (Journal plugin, optional)
+- `agence104/livekit-server-sdk` ^1.3.5 — LiveKit server SDK for video calling (ChatVideo plugin)
+- Centrifugo (external service) — WebSocket server; communicated via HTTP API and `firebase/php-jwt`
+- `intervention/image` dev-main — image manipulation
+- `hashids/hashids` 5.0.2 — URL-safe ID obfuscation
+- `ezyang/htmlpurifier` ^4.17 — HTML sanitization (`raw_safe` Twig filter)
+- `league/iso3166` ^4.3 — ISO 3166 country codes (Location plugin)
+- `barryvdh/laravel-debugbar` ^3.15.0 — debug toolbar (dev only, winter/debugbar plugin)
+## Configuration
+- `.env` — primary runtime config (generated from `.env.example`)
+- `config/app.php`, `config/database.php`, `config/cms.php`, `config/queue.php`, `config/mail.php`, `config/filesystems.php`, `config/broadcasting.php`, `config/cache.php`, `config/session.php`
+- `config/dev/` — development overrides
+- JWT config published to `config/jwt.php` and `config/auth.php` by the User plugin
+- `APP_KEY` — Laravel app encryption key
+- `DB_CONNECTION`, `DB_DATABASE` (default: sqlite)
+- `JWT_SECRET` — JWT signing secret (`php artisan jwt:secret`)
+- `wikimedia/composer-merge-plugin` merges all `plugins/*/*/composer.json` into the root dependency resolution (configured in `composer.json` `extra.merge-plugin`)
+- `composer.json` scripts: `post-install-cmd` and `post-update-cmd` apply `patches/winter-storm-php84-null-offset.patch`
+- `patches.lock.json` — patch tracking file
+## Platform Requirements
+- PHP >= 8.4
+- Composer
+- SQLite (default local) or MySQL/PostgreSQL for production
+- Centrifugo WebSocket server (for chat/WebSocket features)
+- LiveKit server (for video calling features, ChatVideo plugin)
+- Typesense server (optional, for Journal full-text search)
+- CompreFace server (optional, for face recognition in Golem plugin)
+- PHP >= 8.4 web server (Apache or nginx)
+- MySQL or PostgreSQL recommended (SQLite supported)
+- Centrifugo WebSocket server (required for real-time features)
+- Laravel cron scheduler: `* * * * * php artisan schedule:run`
+- Queue worker for broadcast jobs (`BROADCAST_QUEUE=broadcasts`)
+- AWS S3 (optional, configured via `AWS_*` env vars, requires Winter.DriverAWS plugin)
+- Redis (optional, supported for cache, session, and queue drivers)
+<!-- GSD:stack-end -->
+
+<!-- GSD:conventions-start source:CONVENTIONS.md -->
+## Conventions
+
+## Standards
+- `PSR1.Methods.CamelCapsMethodName.NotCamelCaps` — excluded (allows WinterCMS snake_case handler methods like `onSave`, `onDelete`)
+- `Generic.Files.LineLength` — excluded (no line length limit enforced)
+- Partial template files (`*/components/*/*`, `*/controllers/*/*`, `*/partials/*`) are exempt from several spacing and closing-tag rules
+## Naming Patterns
+- Regular methods: `camelCase` — `getItemCount()`, `createFinancialAttributes()`
+- WinterCMS AJAX handlers: `onSave()`, `onDelete()`, `onProcessOrder()` (snake_case prefix `on`)
+- WinterCMS plugin registration hooks: `pluginDetails()`, `registerComponents()`, `registerMarkupTags()`, `registerFormWidgets()`
+## Database Table Naming
+- `golem15_apparatus_jobs`
+- `golem15_apparatus_personal_api_tokens`
+- `golem15_paymentgateway_payments`
+- `golem15_paymentgateway_orders`
+- `golem15_paymentgateway_currencies`
+## Plugin File Organization
+## WinterCMS Plugin Registration Patterns
+## Backend Translation Key Pattern
+## Backend Controller Patterns
+## Model Patterns
+## Backend YAML Configuration
+## Component Patterns
+## Snowboard AJAX Constraint
+## Twig Filters
+- `ucfirst` — PHP built-in
+- `human_date` — calls `HumanDateExtension::humanDateFilter()`
+- `raw_safe` — HTMLPurifier-backed sanitizer; use instead of `|raw` for user-generated HTML
+- `money` — formats a MoneyRight `Money` object via `MoneyFormatter::format()`
+- `item_details` — formats a cart item via `ItemFormatter::format()`
+## Migration Files
+## Error Handling
+## EditorConfig
+- Indent: 4 spaces (no tabs)
+- Line endings: LF
+- Charset: UTF-8
+- Trailing whitespace: trimmed
+- Final newline: required
+<!-- GSD:conventions-end -->
+
+<!-- GSD:architecture-start source:ARCHITECTURE.md -->
+## Architecture
+
+## Pattern Overview
+- Laravel 9.x application with WinterCMS (fork of October CMS) as the CMS layer
+- All custom functionality lives in plugins (`plugins/golem15/`, `plugins/winter/`) registered with WinterCMS's `System\Classes\PluginBase`
+- Every plugin has a `Plugin.php` entry point with `register()` (service container bindings) and `boot()` (event listeners, model extensions) lifecycle methods
+- Plugins declare explicit dependencies via `public $require = ['Author.PluginName']` arrays — WinterCMS enforces load order
+- Cross-plugin model extension uses Winter's `extend()` static method (no direct inheritance coupling)
+- Apparatus plugin (`plugins/golem15/apparatus`) is the mandatory foundation framework; almost every other plugin requires it
+## Layers
+- Purpose: Provide CMS, backend panel, and system infrastructure
+- Location: `modules/system/`, `modules/backend/`, `modules/cms/`
+- Contains: Route handling, plugin loader, model base classes, backend UI, Twig template engine, migration runner
+- Depends on: Laravel 9.x, Winter\Storm (the Laravel buffer layer)
+- Used by: All plugins
+- Purpose: Foundation services shared by all Golem15 plugins — DI, route resolver, backend asset injection, scenario system, Twig filters, API token auth, mail export/import
+- Location: `plugins/golem15/apparatus/`
+- Contains: `Classes/DependencyInjector.php`, `Classes/RouteResolver.php`, `Classes/BackendInjector.php`, `Classes/HtmlSanitizer.php`, `Middleware/TokenAuthenticate.php`, `Middleware/ForceJsonResponse.php`, `Middleware/BlogUrlValidationMiddleware.php`, `Models/PersonalApiToken.php`
+- Depends on: WinterCMS core, `keios/laravel-apparatus` (scenario system via Composer VCS), `intervention/image`, `ezyang/htmlpurifier`
+- Used by: All Golem15 plugins that declare `Golem15.Apparatus` in `$require`
+- Purpose: Frontend user accounts, JWT API authentication, GDPR compliance, OAuth (Socialite), two-factor auth, role/group management, mail blocking
+- Location: `plugins/golem15/user/`
+- Contains: `Classes/AuthManager.php`, `Guards/JwtAuthGuard.php`, `Classes/TwoFactor/TwoFactorService.php`, `Models/User.php`, `Models/MailBlocker.php`, `Models/TrustedDevice.php`, routes at `routes.php` (`/_user/api/v1/*`)
+- Depends on: `Golem15.Apparatus`, `php-open-source-saver/jwt-auth`, `laravel/socialite`
+- Used by: `Golem15.PaymentGateway`, `Golem15.Chat`, `Golem15.WebSockets`
+- Purpose: Full payment processing lifecycle with FSM-driven state transitions, pluggable payment operators, order/shipping management, multi-currency support
+- Location: `plugins/golem15/paymentgateway/`
+- Contains: `core/Operator.php` (abstract FSM base), `core/Order.php` (order FSM), `core/PaymentGatewayServiceProvider.php`, `operators/CashPayment.php`, `operators/ManualTransferPayment.php`, `traits/FiniteStateMachine.php`, `support/MoneyFormatter.php`, `support/CurrencyConverter.php`, `support/GenericItemFormatter.php`, `support/AdjustableItemFormatter.php`, `core/SerializationService.php`
+- Depends on: `Golem15.Apparatus`, `Golem15.User`, `yohang/finite` (FSM), `keios/moneyright` (money arithmetic), `jms/serializer`, `ramsey/uuid`, `hashids/hashids`
+- Used by: `Golem15.PgStripe`
+- Purpose: Domain-specific functionality (blog/journal, FAQ, translate, sitemap, chat, websockets, AI/golem, quote, github, form widgets)
+- Location: `plugins/golem15/{journal,faq,translate,sitemap,chat,websockets,golem,quote,github,knobwidget,dualformwidget,backend,userfriends,chatvideo}/`
+- Contains: Plugin-specific models, controllers, components, console commands
+- Depends on: Various combinations of `Golem15.Apparatus`, `Golem15.Translate`, `Golem15.Chat`, `Golem15.User`, `Golem15.WebSockets`, `Golem15.Golem`
+- Used by: CMS themes, client applications
+- Purpose: Vue/Nuxt frontend application (optional, per-client scaffold)
+- Location: `vue-starter-app/` (git submodule)
+- Contains: Nuxt 4 app (`app/`), shared components (`shared/`), i18n (`i18n/`), Playwright tests (`tests/`)
+- Depends on: Backend API routes exposed by User plugin and other plugins
+- Used by: End users
+## Plugin Dependency Graph
+```
+```
+- `Winter.Debugbar` — debug toolbar
+- `Winter.Location` — location/country data
+## Data Flow
+- No global frontend state manager — server-side rendered CMS pages with Twig
+- Backend panel state is session-based (Laravel sessions)
+- API authentication state via JWT tokens stored client-side
+- Plugin settings stored in `system_settings` table, loaded via `Settings::instance()` singletons
+## Key Abstractions
+- Purpose: Single entry point for each plugin; WinterCMS discovers and loads these automatically
+- Examples: `plugins/golem15/apparatus/Plugin.php`, `plugins/golem15/paymentgateway/Plugin.php`, `plugins/golem15/user/Plugin.php`
+- Pattern: `register()` binds singletons to the Laravel container; `boot()` attaches event listeners and extends other models/controllers
+- Purpose: Auto-inject services into CMS components at page init time, without manual `app()->make()` calls
+- File: `plugins/golem15/apparatus/classes/DependencyInjector.php`
+- Pattern: Component implements `Golem15\Apparatus\Contracts\NeedsDependencies`; any method prefixed `inject` is called automatically via container resolution on `cms.page.initComponents` event
+- Purpose: Decouple plugins — PaymentGateway adds relations to User without modifying User plugin code
+- Pattern used throughout `Plugin::boot()`:
+```php
+```
+- Also used to extend backend controllers with `addDynamicMethod()`:
+```php
+```
+- Purpose: Enforce valid payment and order state transitions; fire domain events on each transition
+- Library: `yohang/finite` 1.1.* (via Bitbucket VCS in `plugins/golem15/paymentgateway/composer.json`)
+- Trait: `plugins/golem15/paymentgateway/traits/FiniteStateMachine.php` — mixed into `Operator` and `core/Order.php`
+- Pattern: Class implements abstract `stateMachineConfig()` returning an array of states and transitions; `initStateMachine()` initializes the `ExtendedStateMachine`
+- Purpose: Pluggable payment providers — each operator wraps a `Payment` model and drives its FSM
+- Base class: `plugins/golem15/paymentgateway/core/Operator.php` (abstract)
+- Built-in operators: `operators/CashPayment.php`, `operators/ManualTransferPayment.php`
+- External operator example: `plugins/golem15/pgstripe/` (separate plugin, requires `Golem15.PaymentGateway`)
+- Operators are registered in `config`: `$this->app['config']->set('golem15.paymentgateway.operators', [CashPayment::class, ManualTransferPayment::class])`; external operators append to this array in their own `Plugin::register()`
+- Purpose: Event-driven workflow engine for complex multi-step business processes
+- Library: `keios/laravel-apparatus` (private VCS at `git@github.com:golem15com/laravel-apparatus.git`)
+- Registered via: `LaravelApparatusServiceProvider` in `Apparatus/Plugin::register()`
+- Exposes: `Resolver` facade aliased globally
+- Purpose: Precise decimal arithmetic for all financial calculations — never use PHP float
+- Library: `keios/moneyright` ~1.0.9 in `plugins/golem15/paymentgateway/`
+- Facades: `MoneyFormatter` (Twig `money` filter), `CurrencyConverter`, `DetailsFormatter`
+- Currency exchange: `FixerCurrencyExchange`, `NbpCurrencyExchange` (Polish National Bank), `YahooCurrencyExchange` in `plugins/golem15/paymentgateway/support/`
+- Purpose: Multilingual frontend content
+- Plugin: `plugins/golem15/translate/` (fork of `Winter.Translate`)
+- Template syntax: `{{ 'English string'|_ }}`
+- Auto-scan: Apparatus `Plugin::register()` hooks `winter.translate.themeScanner.afterScan` to glob `plugins/*/*/components/*/*.htm` for translatable strings
+- Purpose: Inject global CSS/JS assets into every backend page
+- Singleton: `apparatus.backend.injector` → `classes/BackendInjector.php`
+- Usage: `$injector->addCss('/plugins/golem15/apparatus/assets/css/animate.css')`
+- Purpose: Machine-to-machine authentication for backend users
+- Model: `plugins/golem15/apparatus/models/PersonalApiToken.php`
+- Middleware: `token.auth` → `Middleware/TokenAuthenticate.php`
+- UI: Added to Backend\Controllers\Users "My Account" page via `backend.form.extendFields` event
+## Entry Points
+- Location: `index.php`
+- Triggers: Any HTTP request not handled by the web server directly (static assets go to `public/`)
+- Responsibilities: Bootstrap autoloader, create Laravel app, run HTTP kernel, send response
+- Location: `artisan`
+- Triggers: `php artisan <command>`
+- Responsibilities: Bootstrap app, run Console kernel; all plugin commands registered in `Plugin::register()` via `$this->commands([...])`
+- Location: `plugins/golem15/*/Plugin.php` — `register()` then `boot()`
+- Triggers: WinterCMS plugin loader during request bootstrap
+- Responsibilities: Service container bindings in `register()`; event listeners, model extensions, middleware registration in `boot()`
+- Location: `plugins/golem15/paymentgateway/Plugin.php::registerSchedule()`
+- Triggers: `php artisan schedule:run` via cron (`* * * * *`)
+- Responsibilities: `pg:cancel-sent-payments` (daily), `pg:cancel-created-payments` (daily), `pg:cancel-placed-orders` (daily), `pg:finish-orders` (daily), `pg:update-currencies` (every 10 minutes)
+## Error Handling
+- FSM transition failures throw `Finite\Exception\StateException` — caught in Operator methods, re-thrown as domain exceptions (`CancellationFailureException`, `AcceptanceFailureException`, etc.)
+- Plugin boot wraps `Settings::instance()` in `try/catch QueryException` to survive fresh installs before migrations run (PaymentGateway `Plugin::boot()`)
+- Backend AJAX handlers throw `\ValidationException` or `\ApplicationException` which WinterCMS renders as flash messages
+- JWT auth errors return 401 JSON via `JwtAuthenticate` middleware
+- HTML output sanitized via `HtmlSanitizer::clean()` (HTMLPurifier, `raw_safe` Twig filter)
+## Cross-Cutting Concerns
+<!-- GSD:architecture-end -->
+
+<!-- GSD:skills-start source:skills/ -->
+## Project Skills
+
+No project skills found. Add skills to any of: `.claude/skills/`, `.agents/skills/`, `.cursor/skills/`, `.github/skills/`, or `.codex/skills/` with a `SKILL.md` index file.
+<!-- GSD:skills-end -->
+
+<!-- GSD:workflow-start source:GSD defaults -->
+## GSD Workflow Enforcement
+
+Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
+
+Use these entry points:
+- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
+- `/gsd-debug` for investigation and bug fixing
+- `/gsd-execute-phase` for planned phase work
+
+Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
+<!-- GSD:workflow-end -->
+
+<!-- GSD:profile-start -->
+## Developer Profile
+
+> Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
+> This section is managed by `generate-claude-profile` -- do not edit manually.
+<!-- GSD:profile-end -->
