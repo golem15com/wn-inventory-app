@@ -23,4 +23,15 @@ if (!defined('GOLEM15_TEST_BOOTSTRAP_RAN')) {
     define('GOLEM15_TEST_BOOTSTRAP_RAN', true);
 
     putenv('WS_ENABLE_MODEL_UPDATES=false');
+
+    // Symfony 5+ removed Symfony\Component\EventDispatcher\Event but yohang/finite
+    // still extends it. Normally the PaymentGateway plugin's register() creates this
+    // alias, but PluginManager::$noInit skips register() during test bootstrap
+    // (console + empty in-memory DB). Set it up here so the class is always available.
+    if (!class_exists('Symfony\Component\EventDispatcher\Event')) {
+        class_alias(
+            'Symfony\Contracts\EventDispatcher\Event',
+            'Symfony\Component\EventDispatcher\Event'
+        );
+    }
 }

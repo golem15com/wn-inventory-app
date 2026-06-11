@@ -1,162 +1,221 @@
 #!/bin/bash
 set -e
+cd "$(dirname "$0")"
 
 # ============================================================================
-# Golem15 Stack - Non-interactive Setup
+# setup.sh — Golem15 Stack client-scaffold orchestrator
 # ============================================================================
-# Usage:
-#   ./setup.sh                          # defaults: sqlite, admin/admin
-#   DB_CONNECTION=mysql ./setup.sh      # use mysql instead
-#   ADMIN_PASSWORD=secret ./setup.sh    # custom admin password
+# The single documented entry point for spinning up a new client project from
+# the Golem15 starter stack. In SCAFFOLD mode it chains four steps (D-01):
 #
-# Environment variables (all optional, defaults in .env.example):
-#   DB_CONNECTION, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD
-#   ADMIN_EMAIL, ADMIN_LOGIN, ADMIN_PASSWORD, ADMIN_FIRST_NAME, ADMIN_LAST_NAME
+#   1. git remote set-url origin ...  — re-point the SUPERPROJECT (backend) git
+#                                        origin at --backend-repo. MUST precede the
+#                                        reset: reset-gsd.sh refuses while origin
+#                                        still points at the starter.
+#   2. scripts/reset-gsd.sh           — reset the starter into a fresh GSD client
+#                                        project (guarded; refuses the canonical
+#                                        starter origin / non-empty remote — now
+#                                        satisfied because step 1 repointed it).
+#   3. backend-init.sh                — composer install, migrate, admin seed,
+#                                        mirror (DB_*/ADMIN_* forwarded as env).
+#   4. scripts/frontend-init.sh       — scaffold the Vue frontend submodule from
+#                                        --name/--frontend-repo (skipped with
+#                                        --no-frontend).
+#
+# MODES (D-03/D-04):
+#   SCAFFOLD MODE   — triggered when --backend-repo OR --name is supplied.
+#                     Non-interactive; runs the full chain above. Reset is
+#                     IMPLICIT and guarded (no separate --reset ack flag).
+#   INTERACTIVE MODE — bare `./setup.sh` with no flags. Prompts for name /
+#                     backend-repo / frontend-repo. If BOTH repos are left blank
+#                     (plain local dev onboarding) it falls through to a plain
+#                     `backend-init.sh` local install — today's behavior, NO
+#                     reset. If a repo is entered, it continues into scaffold mode.
+#
+# Usage:
+#   ./setup.sh                                          # interactive
+#   ./setup.sh --backend-repo=<url> --name=<client> \
+#              [--frontend-repo=<url>] [--db=mysql] \
+#              [--admin-password=secret] [--admin-login=admin] \
+#              [--admin-email=a@b.c] [--no-frontend] [--dry-run]
+#   ./setup.sh --backend-repo <url> --name <client> ...  # space form also works
+#
+# --dry-run (D-05) propagates end-to-end: reset-gsd.sh and frontend-init.sh
+# receive --dry-run; the backend repoint + backend-init.sh steps are PRINT-ONLY.
+#
+# Forwarded to backend-init.sh (D-06): --db -> DB_CONNECTION, --admin-password ->
+# ADMIN_PASSWORD, --admin-login -> ADMIN_LOGIN, --admin-email -> ADMIN_EMAIL.
+# (Dropped per D-07: there is no backend-skip flag, no milestone flag, and no
+#  reset acknowledgement flag — those were intentionally removed.)
 # ============================================================================
 
-# --- PHP / Composer binaries --------------------------------------------------
-# Override with: PHP=php83 COMPOSER=composer83 ./setup.sh
+# --- Flag parsing ------------------------------------------------------------
+# Support BOTH --flag=value and --flag value forms (consistent with
+# scripts/frontend-init.sh). Boolean flags: --dry-run, --no-frontend.
+DRY_RUN=0
+NO_FRONTEND=0
+BACKEND_REPO=""
+FRONTEND_REPO=""
+NAME=""
+DB=""
+ADMIN_PASSWORD=""
+ADMIN_LOGIN=""
+ADMIN_EMAIL=""
 
-PHP="${PHP:-php}"
-COMPOSER="${COMPOSER:-composer}"
+# Detect "no args at all" up front — this is what selects INTERACTIVE mode.
+ARGC=$#
 
-echo "Using: $PHP ($($PHP -r 'echo PHP_VERSION;'))"
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --dry-run)            DRY_RUN=1 ;;
+        --no-frontend)        NO_FRONTEND=1 ;;
+        --backend-repo=*)     BACKEND_REPO="${1#*=}" ;;
+        --backend-repo)       shift; BACKEND_REPO="$1" ;;
+        --frontend-repo=*)    FRONTEND_REPO="${1#*=}" ;;
+        --frontend-repo)      shift; FRONTEND_REPO="$1" ;;
+        --name=*)             NAME="${1#*=}" ;;
+        --name)               shift; NAME="$1" ;;
+        --db=*)               DB="${1#*=}" ;;
+        --db)                 shift; DB="$1" ;;
+        --admin-password=*)   ADMIN_PASSWORD="${1#*=}" ;;
+        --admin-password)     shift; ADMIN_PASSWORD="$1" ;;
+        --admin-login=*)      ADMIN_LOGIN="${1#*=}" ;;
+        --admin-login)        shift; ADMIN_LOGIN="$1" ;;
+        --admin-email=*)      ADMIN_EMAIL="${1#*=}" ;;
+        --admin-email)        shift; ADMIN_EMAIL="$1" ;;
+        *)
+            echo "Unknown argument: $1"
+            echo "Usage: ./setup.sh --backend-repo=<url> --name=<client> [--frontend-repo=<url>] \\"
+            echo "                  [--db=<conn>] [--admin-password=<p>] [--admin-login=<l>] \\"
+            echo "                  [--admin-email=<e>] [--no-frontend] [--dry-run]"
+            echo "       ./setup.sh                 # interactive mode (no flags)"
+            exit 1
+            ;;
+    esac
+    shift
+done
 
-# Suppress E_DEPRECATED warnings from vendor code (Laravel 9.x on PHP 8.4+)
-# 8191 = E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED
-ARTISAN="$PHP -d error_reporting=8191 artisan"
-
-# --- Git submodules ----------------------------------------------------------
-
-echo ""
-echo "==> Initializing git submodules..."
-git submodule update --init --recursive
-
-# --- Environment file (before composer so post-update-cmd scripts can boot) ---
-
-# Helper: update or append a key in .env
-set_env() {
-    local key="$1" value="$2"
-    if grep -q "^${key}=" .env; then
-        sed -i "s|^${key}=.*|${key}=${value}|" .env
+# run(): route every mutating step through here so --dry-run touches nothing.
+# Arguments are passed as a real argv (NOT through eval) so operator-supplied
+# values — repo URLs, admin password, client name, interactive input — are never
+# re-parsed as shell. `%q` quoting keeps the dry-run preview faithful and safe.
+run() {
+    if [ "$DRY_RUN" = "1" ]; then
+        printf '[dry-run] would:'
+        printf ' %q' "$@"
+        printf '\n'
     else
-        echo "${key}=${value}" >> .env
+        "$@"
     fi
 }
 
-if [ ! -f .env ]; then
+# DRY_ARGS is forwarded to sub-scripts that understand --dry-run (empty array =
+# nothing forwarded). An array, not a string, so it expands as distinct argv.
+DRY_ARGS=()
+[ "$DRY_RUN" = "1" ] && DRY_ARGS=(--dry-run)
+
+echo "=== setup.sh ==="
+if [ "$DRY_RUN" = "1" ]; then
+    echo "==> DRY RUN: nothing destructive will run (no reset, repoint, install, or scaffold)."
+fi
+
+# --- INTERACTIVE MODE (D-03) -------------------------------------------------
+# Bare `./setup.sh` with no args prompts for the three inputs in a sensible
+# order (name -> backend-repo -> frontend-repo), blanks allowed. If BOTH repos
+# come back blank, fall through to a plain local install (NO reset). Otherwise
+# the entered values feed straight into scaffold mode below.
+if [ "$ARGC" -eq 0 ]; then
     echo ""
-    echo "==> Creating .env from .env.example..."
-    cp .env.example .env
-fi
+    echo "==> Interactive setup. Leave both repos blank for a plain local dev install."
+    printf "Client name (slug, e.g. acme) [blank for local install]: "
+    read -r NAME
+    printf "Backend (superproject) git repo URL [blank = local install]: "
+    read -r BACKEND_REPO
+    printf "Frontend git repo URL [blank = skip frontend scaffold]: "
+    read -r FRONTEND_REPO
 
-# Apply DB_CONNECTION override (default to sqlite for quick local setup)
-DB_CONNECTION="${DB_CONNECTION:-sqlite}"
-set_env DB_CONNECTION "$DB_CONNECTION"
-
-# Forward any DB env vars the caller set
-[ -n "${DB_HOST+x}" ]     && set_env DB_HOST "$DB_HOST"
-[ -n "${DB_PORT+x}" ]     && set_env DB_PORT "$DB_PORT"
-[ -n "${DB_DATABASE+x}" ] && set_env DB_DATABASE "$DB_DATABASE"
-[ -n "${DB_USERNAME+x}" ] && set_env DB_USERNAME "$DB_USERNAME"
-[ -n "${DB_PASSWORD+x}" ] && set_env DB_PASSWORD "$DB_PASSWORD"
-
-# SQLite: create the database file if needed
-if [ "$DB_CONNECTION" = "sqlite" ]; then
-    SQLITE_PATH="${DB_DATABASE:-storage/database.sqlite}"
-    if [[ "$SQLITE_PATH" != /* ]]; then
-        SQLITE_PATH="$(pwd)/$SQLITE_PATH"
+    # Both repos blank -> today's behavior: plain local install, no reset.
+    if [ -z "$BACKEND_REPO" ] && [ -z "$FRONTEND_REPO" ]; then
+        echo ""
+        echo "==> No repos given — running a plain local install (backend-init.sh), no reset."
+        exec bash backend-init.sh
     fi
-    set_env DB_DATABASE "$SQLITE_PATH"
-    mkdir -p "$(dirname "$SQLITE_PATH")"
-    touch "$SQLITE_PATH"
-    echo "==> SQLite database: $SQLITE_PATH"
+    # A repo was entered -> continue into scaffold mode with the prompted values.
+    echo ""
+    echo "==> Repo(s) supplied — proceeding with client scaffold."
 fi
 
-# --- Composer (double-run for wikimedia/composer-merge-plugin) ----------------
-# First run: install root deps + merge-plugin resolves plugin deps. --no-scripts
-#   suppresses root scripts, but the merge plugin's internal update may still
-#   trigger post-update-cmd. jms/serializer is pinned in root require to prevent
-#   doctrine/instantiator version conflicts during partial-update resolution.
-# Second run: safety net - ensures all merged deps are fully resolved.
-
+# --- SCAFFOLD MODE GUARD -----------------------------------------------------
+# Runs even under --dry-run (mirrors frontend-init.sh's leading guard). In
+# scaffold mode both --name and --backend-repo are required. The reset origin
+# guard itself is NOT re-implemented here — step 1 delegates to reset-gsd.sh.
 echo ""
-echo "==> Installing composer dependencies (pass 1 - root deps)..."
-$COMPOSER install --no-interaction --no-scripts
+echo "==> Guard: validate scaffold inputs"
+if [ -z "$NAME" ] || [ -z "$BACKEND_REPO" ]; then
+    echo "Refusing: scaffold mode requires both --name and --backend-repo."
+    echo "  ./setup.sh --backend-repo=git@github.com:org/<client>.git --name=<client> [--frontend-repo=<url>]"
+    echo "  (Or run bare ./setup.sh for interactive / plain local install.)"
+    exit 1
+fi
+echo "Guard passed: name='$NAME', backend-repo='$BACKEND_REPO', frontend-repo='${FRONTEND_REPO:-(none)}'."
 
+# --- STEP 1: BACKEND ORIGIN REPOINT (D-01) -----------------------------------
+# Re-point the SUPERPROJECT origin to --backend-repo. This MUST happen BEFORE the
+# reset (step 2): scripts/reset-gsd.sh's freshness guard refuses while origin
+# still points at the starter (`*wn-starter-app*`) and requires an EMPTY remote.
+# Repointing first means reset-gsd sees the fresh, empty client origin and passes.
+# Print-only under --dry-run (D-05): the repoint goes through run(), which echoes
+# instead of executing — so a full-chain --dry-run will stop at the step-2 guard
+# (origin was never actually moved); preview the reset standalone if needed.
 echo ""
-echo "==> Installing composer dependencies (pass 2 - plugin deps via merge plugin)..."
-$COMPOSER update --no-interaction
+echo "==> Step 1: re-point the superproject (backend) origin to '$BACKEND_REPO'"
+run git remote set-url origin "$BACKEND_REPO"
 
-# --- App key -----------------------------------------------------------------
-
+# --- STEP 2: RESET (implicit, guarded, D-04) ---------------------------------
+# Delegate to scripts/reset-gsd.sh; do NOT bypass its origin/empty-remote guard.
+# Origin was repointed to the empty client repo in step 1, so the guard passes.
+# Propagate --dry-run. Under `set -e` a refused reset aborts setup.
 echo ""
-echo "==> Generating application key..."
-$ARTISAN key:generate --force --no-interaction
+echo "==> Step 2: reset starter into a fresh client project (scripts/reset-gsd.sh)"
+run bash scripts/reset-gsd.sh "${DRY_ARGS[@]}"
 
-# --- Directories -------------------------------------------------------------
-
-mkdir -p storage/temp/protected/paymentgateway
-
-# --- Database migration ------------------------------------------------------
-
+# --- STEP 3: BACKEND INSTALL (D-01) ------------------------------------------
+# Forward --db/--admin-* into backend-init.sh as env vars. Print-only under
+# --dry-run. Do NOT pass --reset — the reset already ran in step 2.
 echo ""
-echo "==> Running migrations (winter:up)..."
-$ARTISAN winter:up
+echo "==> Step 3: install the backend (backend-init.sh)"
+# Build an env-prefix argv (no eval, no quoted-string assembly). Values land as
+# literal env entries via `env NAME=value ... cmd`; empty array = no env prefix.
+BACKEND_ENV=()
+[ -n "$DB" ]             && BACKEND_ENV+=("DB_CONNECTION=$DB")
+[ -n "$ADMIN_PASSWORD" ] && BACKEND_ENV+=("ADMIN_PASSWORD=$ADMIN_PASSWORD")
+[ -n "$ADMIN_LOGIN" ]    && BACKEND_ENV+=("ADMIN_LOGIN=$ADMIN_LOGIN")
+[ -n "$ADMIN_EMAIL" ]    && BACKEND_ENV+=("ADMIN_EMAIL=$ADMIN_EMAIL")
+run env "${BACKEND_ENV[@]}" bash backend-init.sh
 
-# --- Admin user seeding ------------------------------------------------------
-
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@example.com}"
-ADMIN_LOGIN="${ADMIN_LOGIN:-admin}"
-ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin}"
-ADMIN_FIRST_NAME="${ADMIN_FIRST_NAME:-Admin}"
-ADMIN_LAST_NAME="${ADMIN_LAST_NAME:-Person}"
-
+# --- STEP 4: FRONTEND SCAFFOLD (D-01) ----------------------------------------
+# Skipped entirely with --no-frontend. Otherwise delegate to
+# scripts/frontend-init.sh, forwarding --name/--repo and propagating --dry-run.
 echo ""
-echo "==> Configuring admin user ($ADMIN_LOGIN / $ADMIN_EMAIL)..."
+if [ "$NO_FRONTEND" = "1" ]; then
+    echo "==> Step 4: frontend scaffold SKIPPED (--no-frontend)."
+elif [ -z "$FRONTEND_REPO" ]; then
+    echo "==> Step 4: frontend scaffold SKIPPED (no --frontend-repo supplied)."
+else
+    echo "==> Step 4: scaffold the frontend (scripts/frontend-init.sh)"
+    run bash scripts/frontend-init.sh --name="$NAME" --repo="$FRONTEND_REPO" "${DRY_ARGS[@]}"
+fi
 
-$ARTISAN tinker --execute="
-    \$admin = \Backend\Models\User::where('login', 'admin')->first();
-    if (\$admin) {
-        \$admin->email      = '${ADMIN_EMAIL}';
-        \$admin->login      = '${ADMIN_LOGIN}';
-        \$admin->password   = '${ADMIN_PASSWORD}';
-        \$admin->password_confirmation = '${ADMIN_PASSWORD}';
-        \$admin->first_name = '${ADMIN_FIRST_NAME}';
-        \$admin->last_name  = '${ADMIN_LAST_NAME}';
-        \$admin->save();
-        echo \"Admin user updated.\n\";
-    } else {
-        \$seeder = new \Backend\Database\Seeds\SeedSetupAdmin;
-        \$seeder->setDefaults([
-            'email'     => '${ADMIN_EMAIL}',
-            'login'     => '${ADMIN_LOGIN}',
-            'password'  => '${ADMIN_PASSWORD}',
-            'firstName' => '${ADMIN_FIRST_NAME}',
-            'lastName'  => '${ADMIN_LAST_NAME}',
-        ]);
-        \$seeder->run();
-        echo \"Admin user created.\n\";
-    }
-"
-
-# --- Public assets -----------------------------------------------------------
-
+# --- CLOSING NEXT-STEP BLOCK -------------------------------------------------
 echo ""
-echo "==> Mirroring public assets..."
-$ARTISAN winter:mirror public --relative
-
-# --- Git status cleanup -------------------------------------------------------
-
-echo ""
-echo "==> Marking module changes as skip-worktree (git status sanity)..."
-$ARTISAN g15:sane-git
-
-# --- Done --------------------------------------------------------------------
-
-echo ""
-echo "============================================"
-echo "  Setup complete!"
-echo "  Admin: $ADMIN_LOGIN / $ADMIN_EMAIL"
-echo "  Run:   $PHP artisan serve"
-echo "============================================"
+echo "=== setup done ==="
+echo "Client '$NAME' scaffolded: starter reset, backend origin -> '$BACKEND_REPO', backend installed."
+if [ "$NO_FRONTEND" != "1" ] && [ -n "$FRONTEND_REPO" ]; then
+    echo "Frontend submodule scaffolded -> '$FRONTEND_REPO'."
+fi
+echo "Next steps:"
+echo "  1. Review the working tree + .gitmodules diff, then commit the scaffolded state."
+echo "  2. Run /gsd-new-project to author the client's first milestone."
+if [ "$DRY_RUN" = "1" ]; then
+    echo "(dry-run: nothing was actually reset, repointed, or installed.)"
+fi

@@ -21,7 +21,7 @@
 [submodule "plugins/golem15/paymentgateway"]
 	path = plugins/golem15/paymentgateway
 	url = git@github.com:golem15com/wn-paymentgateway-plugin.git
-	branch = upgrade
+	branch = master
 [submodule "plugins/golem15/pgstripe"]
 	path = plugins/golem15/pgstripe
 	url = git@github.com:golem15com/wn-pgstripe-plugin.git
@@ -46,18 +46,9 @@
 	path = plugins/golem15/websockets
 	url = git@github.com:golem15com/wn-websockets-plugin.git
 	branch = master
-[submodule "plugins/winter/redirect"]
-	path = plugins/winter/redirect
-	url = https://github.com/wintercms/wn-redirect-plugin.git
-[submodule "plugins/winter/pages"]
-	path = plugins/winter/pages
-	url = https://github.com/wintercms/wn-pages-plugin.git
 [submodule "plugins/winter/debugbar"]
 	path = plugins/winter/debugbar
 	url = https://github.com/wintercms/wn-debugbar-plugin.git
-[submodule "plugins/winter/blocks"]
-	path = plugins/winter/blocks
-	url = https://github.com/wintercms/wn-blocks-plugin.git
 [submodule "plugins/winter/location"]
 	path = plugins/winter/location
 	url = https://github.com/wintercms/wn-location-plugin.git
@@ -74,3 +65,14 @@
 [submodule "plugins/golem15/backend"]
 	path = plugins/golem15/backend
 	url = git@github.com:golem15com/wn-backend-plugin.git
+[submodule "plugins/golem15/userfriends"]
+	path = plugins/golem15/userfriends
+	url = git@github.com:golem15com/wn-userfriends-plugin.git
+	branch = master
+[submodule "plugins/golem15/chatvideo"]
+	path = plugins/golem15/chatvideo
+	url = git@github.com:golem15com/wn-chatvideo-plugin.git
+	branch = master
+[submodule "vue-starter-app"]
+	path = vue-starter-app
+	url = git@github.com:golem15com/vue-starter-app.git
