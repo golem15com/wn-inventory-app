@@ -79,7 +79,7 @@ php artisan websockets:test-push
 ### Git Submodules
 
 All plugins are managed as git submodules for independent version control:
-- **19 Golem15 plugins** in `plugins/golem15/`
+- **18 Golem15 plugins** in `plugins/golem15/`
 - **2 Winter plugins** in `plugins/winter/` (debugbar, location)
 
 ```bash
@@ -119,31 +119,32 @@ git commit -m "Update apparatus submodule reference"
 **Core Framework:**
 - **Apparatus**: Foundation framework providing dependency injection, scenario-based workflows, backend utilities, form widgets, and various helper classes. Required by most other plugins.
 - **User**: Enhanced user authentication with JWT support, GDPR compliance (scheduled deletions), OAuth integration (Laravel Socialite)
+- **Backend**: Golem15-branded backend login page and branding defaults
+- **Golem**: Clean, extendable AI integration for WinterCMS (multiple engines, chat interfaces, prompt management)
 
 **Payment & Commerce:**
 - **PaymentGateway**: Complete payment processing system with finite state machines, order management, shipping, quotes, and multi-currency support. Uses MoneyRight library for financial calculations.
 - **PgStripe**: Stripe payment operator integration
 
 **Content Management:**
-- **Blog**: Blog system with posts, categories, RSS feeds
-- **BlogHub**: Blog aggregation/hub functionality
+- **Journal**: Headless-capable blog/content platform — posts, categories, RSS, JSON API (`/_journal/api/v1`), multilingual
 - **FAQ**: FAQ management
-- **Menu**: Navigation menu builder
-- **SEO**: SEO optimization tools
-- **Translate**: Multilingual support, locale management, message translation
-
-**Advanced Features:**
-- **AI**: AI integration with multiple engines (OpenAI, Perplexity), chat interfaces, prompt management
-- **Chat**: Real-time chat functionality
-- **WebSockets**: WebSocket support for real-time features
-- **Quote**: Quote/estimation system
-- **SiteManager**: Multi-site management
 - **Sitemap**: XML sitemap generation
-- **GitHub**: GitHub integration
+- **Translate**: Multilingual support, locale management, message translation (fork of Winter.Translate)
+- **Quote**: AI-powered quote/estimation generation with scheduled daily generation
+
+**Real-time & Social:**
+- **WebSockets**: WebSocket support for real-time features (Centrifugo broadcasting, channel authorization, push)
+- **Chat**: Real-time chat functionality
+- **ChatVideo**: Video and audio calling for Golem15 Chat conversations
+- **UserFriends**: User-to-user friendship system with friend requests and friends list
+
+**Developer Tools:**
+- **GitHub**: GitHub integration (fetch issues/PRs, start/close work from the CLI)
 
 **Form Widgets:**
 - **KnobWidget**: Knob/dial form widget
-- **DualFormField**: Dual input form field widget
+- **DualFormWidget**: Dual input form widget for paired values in backend forms
 
 ### Plugin Dependencies
 
