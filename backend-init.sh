@@ -5,11 +5,11 @@ set -e
 # Golem15 Stack - Non-interactive Setup
 # ============================================================================
 # Usage:
-#   ./setup.sh                          # defaults: sqlite, admin/admin
-#   DB_CONNECTION=mysql ./setup.sh      # use mysql instead
-#   ADMIN_PASSWORD=secret ./setup.sh    # custom admin password
-#   ./setup.sh --reset                  # GSD-reset starter, then install
-#   RESET=1 ./setup.sh                  # same via env var
+#   ./backend-init.sh                          # defaults: sqlite, admin/admin
+#   DB_CONNECTION=mysql ./backend-init.sh      # use mysql instead
+#   ADMIN_PASSWORD=secret ./backend-init.sh    # custom admin password
+#   ./backend-init.sh --reset                  # GSD-reset starter, then install
+#   RESET=1 ./backend-init.sh                  # same via env var
 #
 # Environment variables (all optional, defaults in .env.example):
 #   DB_CONNECTION, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD
@@ -17,7 +17,7 @@ set -e
 # ============================================================================
 
 # --- PHP / Composer binaries --------------------------------------------------
-# Override with: PHP=php83 COMPOSER=composer83 ./setup.sh
+# Override with: PHP=php83 COMPOSER=composer83 ./backend-init.sh
 
 PHP="${PHP:-php}"
 COMPOSER="${COMPOSER:-composer}"
