@@ -203,10 +203,10 @@ run git -C "$SUBMODULE" remote set-url origin "$REPO"
 # new url into .git/config via `git submodule sync --recursive`.
 echo ""
 echo "==> Step 5: update superproject .gitmodules url + git submodule sync"
-# Replace the url line that follows the vue-starter-app path declaration. The
-# submodule's url is the only one pointing at vue-starter-app, so a targeted
-# substitution on that exact url is safe and unambiguous.
-run sed -i -E 's#(url = ).*golem15com/vue-starter-app\.git#\1'"$REPO"'#' .gitmodules
+# Set the submodule's url to the literal $REPO via `git config -f`. Writing the
+# config key directly (not a sed substitution) keeps a URL containing '&', '#',
+# or '\' literal and cannot corrupt .gitmodules (WR-02).
+run git config -f .gitmodules submodule.vue-starter-app.url "$REPO"
 run git submodule sync --recursive "$SUBMODULE"
 
 # --- STEP 6: CLOSING NEXT-STEP BLOCK ----------------------------------------
