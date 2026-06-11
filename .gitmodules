@@ -73,6 +73,9 @@
 	path = plugins/golem15/chatvideo
 	url = git@github.com:golem15com/wn-chatvideo-plugin.git
 	branch = master
-[submodule "vue-starter-app"]
-	path = vue-starter-app
+[submodule "plugins/jz/inventory"]
+	path = plugins/jz/inventory
+	url = git@git.golem15.com:jakub/wn-inventory-plugin.git
+[submodule "vue-inventory-app"]
+	path = vue-inventory-app
 	url = git@git.golem15.com:jakub/vue-inventory-app.git
