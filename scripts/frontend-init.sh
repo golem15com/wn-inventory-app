@@ -87,6 +87,16 @@ run() {
     fi
 }
 
+# sed_escape_replacement(): escape characters sed treats specially in the
+# REPLACEMENT half of an s/// command — the active '/' delimiter, '&' (whole-match
+# reference), and '\' (escape). Operator-supplied names/display names are spliced
+# in literally, so 'a/b&c' renames to the literal 'a/b&c' and never aborts the
+# anchored sed under set -e (WR-03). Only the replacement value is escaped; each
+# per-file anchored PATTERN is left intact.
+sed_escape_replacement() {
+    printf '%s' "$1" | sed -e 's/[\/&]/\\&/g'
+}
+
 echo "=== frontend-init.sh ==="
 if [ "$DRY_RUN" = "1" ]; then
     echo "==> DRY RUN: no files, remotes, or .gitmodules entries will be changed."
@@ -162,32 +172,32 @@ echo "==> Step 3: rename app identifiers (slug + display name)"
 
 # package.json "name" (load-bearing)
 if [ -f "$SUBMODULE/package.json" ]; then
-    run sed -i -E 's/("name"[[:space:]]*:[[:space:]]*")vue-starter-app(")/\1'"$NAME"'\2/' "$SUBMODULE/package.json"
+    run sed -i -E 's/("name"[[:space:]]*:[[:space:]]*")vue-starter-app(")/\1'"$(sed_escape_replacement "$NAME")"'\2/' "$SUBMODULE/package.json"
 fi
 
 # README title (first-line H1)
 if [ -f "$SUBMODULE/README.md" ]; then
-    run sed -i -E '1s/^# vue-starter-app[[:space:]]*$/# '"$NAME"'/' "$SUBMODULE/README.md"
+    run sed -i -E '1s/^# vue-starter-app[[:space:]]*$/# '"$(sed_escape_replacement "$NAME")"'/' "$SUBMODULE/README.md"
 fi
 
 # nuxt.config.ts site.name + app.head.title (display name).
 # NOTE: this rewrites the CLIENT's checkout at scaffold time — frontend-init.sh
 # is not the starter's 17-01 single-owner; it mutates a fork.
 if [ -f "$SUBMODULE/nuxt.config.ts" ]; then
-    run sed -i "s/Vue Starter App/$DISPLAY_NAME/g" "$SUBMODULE/nuxt.config.ts"
+    run sed -i "s/Vue Starter App/$(sed_escape_replacement "$DISPLAY_NAME")/g" "$SUBMODULE/nuxt.config.ts"
 fi
 
 # i18n welcome strings (display name) — en + pl.
 for loc in en pl; do
     LOC_FILE="$SUBMODULE/i18n/locales/$loc.json"
     if [ -f "$LOC_FILE" ]; then
-        run sed -i "s/Vue Starter App/$DISPLAY_NAME/g" "$LOC_FILE"
+        run sed -i "s/Vue Starter App/$(sed_escape_replacement "$DISPLAY_NAME")/g" "$LOC_FILE"
     fi
 done
 
 # .env.example header comment (slug).
 if [ -f "$SUBMODULE/.env.example" ]; then
-    run sed -i -E 's/^# vue-starter-app /# '"$NAME"' /' "$SUBMODULE/.env.example"
+    run sed -i -E 's/^# vue-starter-app /# '"$(sed_escape_replacement "$NAME")"' /' "$SUBMODULE/.env.example"
 fi
 
 echo "  Renamed: package.json name, README title, nuxt.config (site.name + head title),"
