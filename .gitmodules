@@ -75,4 +75,4 @@
 	branch = master
 [submodule "vue-starter-app"]
 	path = vue-starter-app
-	url = git@github.com:golem15com/vue-starter-app.git
+	url = git@git.golem15.com:jakub/vue-inventory-app.git
