@@ -79,3 +79,6 @@
 [submodule "vue-inventory-app"]
 	path = vue-inventory-app
 	url = git@git.golem15.com:jakub/vue-inventory-app.git
+[submodule "inventory-mcp"]
+	path = inventory-mcp
+	url = git@git.golem15.com:jakub/inventory-mcp.git
