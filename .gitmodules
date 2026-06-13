@@ -2,38 +2,6 @@
 	path = plugins/golem15/apparatus
 	url = git@github.com:golem15com/oc-apparatus-plugin.git
 	branch = master
-[submodule "plugins/golem15/chat"]
-	path = plugins/golem15/chat
-	url = git@github.com:golem15com/wn-chat-plugin.git
-	branch = master
-[submodule "plugins/golem15/faq"]
-	path = plugins/golem15/faq
-	url = git@github.com:golem15com/wn-faq-plugin.git
-	branch = master
-[submodule "plugins/golem15/github"]
-	path = plugins/golem15/github
-	url = git@github.com:golem15com/wn-github-plugin.git
-	branch = master
-[submodule "plugins/golem15/knobwidget"]
-	path = plugins/golem15/knobwidget
-	url = git@github.com:golem15com/wn-knobwidget-plugin.git
-	branch = master
-[submodule "plugins/golem15/paymentgateway"]
-	path = plugins/golem15/paymentgateway
-	url = git@github.com:golem15com/wn-paymentgateway-plugin.git
-	branch = master
-[submodule "plugins/golem15/pgstripe"]
-	path = plugins/golem15/pgstripe
-	url = git@github.com:golem15com/wn-pgstripe-plugin.git
-	branch = master
-[submodule "plugins/golem15/quote"]
-	path = plugins/golem15/quote
-	url = git@github.com:golem15com/wn-quote-plugin.git
-	branch = master
-[submodule "plugins/golem15/sitemap"]
-	path = plugins/golem15/sitemap
-	url = git@github.com:golem15com/wn-sitemap-plugin.git
-	branch = master
 [submodule "plugins/golem15/translate"]
 	path = plugins/golem15/translate
 	url = git@github.com:golem15com/wn-translate-plugin.git
@@ -42,37 +10,12 @@
 	path = plugins/golem15/user
 	url = git@github.com:golem15com/wn-user-plugin.git
 	branch = master
-[submodule "plugins/golem15/websockets"]
-	path = plugins/golem15/websockets
-	url = git@github.com:golem15com/wn-websockets-plugin.git
-	branch = master
-[submodule "plugins/winter/debugbar"]
-	path = plugins/winter/debugbar
-	url = https://github.com/wintercms/wn-debugbar-plugin.git
-[submodule "plugins/winter/location"]
-	path = plugins/winter/location
-	url = https://github.com/wintercms/wn-location-plugin.git
-[submodule "plugins/golem15/journal"]
-	path = plugins/golem15/journal
-	url = git@github.com:golem15com/wn-journal-plugin.git
 [submodule "plugins/golem15/golem"]
 	path = plugins/golem15/golem
 	url = git@github.com:golem15com/wn-golem-plugin.git
-[submodule "plugins/golem15/dualformwidget"]
-	path = plugins/golem15/dualformwidget
-	url = git@github.com:golem15com/wn-dualformfield-plugin.git
-	branch = master
 [submodule "plugins/golem15/backend"]
 	path = plugins/golem15/backend
 	url = git@github.com:golem15com/wn-backend-plugin.git
-[submodule "plugins/golem15/userfriends"]
-	path = plugins/golem15/userfriends
-	url = git@github.com:golem15com/wn-userfriends-plugin.git
-	branch = master
-[submodule "plugins/golem15/chatvideo"]
-	path = plugins/golem15/chatvideo
-	url = git@github.com:golem15com/wn-chatvideo-plugin.git
-	branch = master
 [submodule "plugins/jz/inventory"]
 	path = plugins/jz/inventory
 	url = git@git.golem15.com:jakub/wn-inventory-plugin.git
