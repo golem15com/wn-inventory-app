@@ -1,0 +1,51 @@
+# Keep the build context lean. vendor/ is built INSIDE the image (D-14), never
+# shipped from the host. Secrets (.env) and the SPA build output never enter a
+# layer (T-11-21 / T-11-24).
+
+# VCS + planning
+.git
+.gitignore
+.gitmodules
+.github
+.planning
+*.md
+!README.md
+
+# Composer artifacts — vendor/ is resolved in the builder stage
+vendor
+composer.phar
+
+# Node / SPA build output (the Vue app is built & served separately)
+node_modules
+vue-inventory-app/node_modules
+vue-inventory-app/.nuxt
+vue-inventory-app/.output
+vue-inventory-app/dist
+inventory-mcp/node_modules
+inventory-mcp/dist
+
+# Secrets & local env — NEVER bake into an image layer
+.env
+.env.*
+!.env.docker.example
+
+# Generated public mirror + temp (winter:mirror runs at boot in the entrypoint)
+public
+temp
+
+# Runtime state — regenerated in-container
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/cms/*
+*.sqlite
+typesense-data
+
+# Editor / OS cruft
+.idea
+.vscode
+.DS_Store
+.phpunit.result.cache
+.phpunit.cache
+php_errors.log
