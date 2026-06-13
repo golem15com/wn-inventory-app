@@ -7,6 +7,10 @@ composer.lock
 .env
 .env.*.php
 .env.php
+
+# Self-host secrets (Phase 11) — keep the example, ignore the real one
+.env.docker
+!.env.docker.example
 selenium.php
 /bootstrap/compiled.php
 .phpunit.result.cache

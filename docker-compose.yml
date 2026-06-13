@@ -1,0 +1,164 @@
+# =============================================================================
+# Inventory (whereiput.it) — self-host compose (Phase 11, D-13)
+# =============================================================================
+# Two profiles:
+#
+#   light  — SQLite + sync queue + (optional) Typesense. Zero external DB.
+#            Search degrades to the scoped DB fallback when Typesense is absent
+#            (Inventory Plugin.php class_exists Scout guard). Smallest footprint.
+#                docker compose --profile light up
+#
+#   full   — Postgres + Typesense + a dedicated queue worker. Production-like.
+#                docker compose --profile full up
+#
+# First run:  cp .env.docker.example .env.docker  &&  edit ADMIN_EMAIL / ADMIN_PASSWORD
+# Build:      DOCKER_BUILDKIT=1 docker build --ssh default -t inventory-app .
+#
+# APP_KEY is generated ONCE by the entrypoint and persisted to the app-state
+# volume (.env on the volume). It must NEVER rotate or every stored BYOK key is
+# orphaned (Pitfall 6 / T-11-22) — the named volumes below preserve it.
+# =============================================================================
+
+x-app-image: &app-image
+  image: inventory-app:latest
+  build:
+    context: .
+    # BuildKit + SSH secret required for the private keios composer deps (D-14):
+    #   DOCKER_BUILDKIT=1 docker compose build --ssh default
+    ssh:
+      - default
+
+services:
+  # ---------------------------------------------------------------------------
+  # LIGHT profile — SQLite, sync queue, optional Typesense
+  # ---------------------------------------------------------------------------
+  app-light:
+    <<: *app-image
+    profiles: ["light"]
+    env_file:
+      - .env.docker
+    environment:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /var/www/html/storage/database.sqlite
+      QUEUE_CONNECTION: sync
+      CACHE_DRIVER: file
+      SESSION_DRIVER: file
+      # SCOUT_DRIVER unset → Inventory falls back to scoped DB search on SQLite.
+      # To use Typesense in light mode, enable the typesense-light service below
+      # and set SCOUT_DRIVER=typesense + TYPESENSE_* in .env.docker.
+      ENV_FILE: /var/www/html/storage/persisted.env
+    volumes:
+      - app_light_state:/var/www/html/storage
+    ports:
+      - "${APP_PORT:-8088}:80"
+    restart: unless-stopped
+
+  # Optional Typesense for light mode — enable with the "light" profile only if
+  # you set SCOUT_DRIVER=typesense in .env.docker. Off by default (DB fallback).
+  typesense-light:
+    image: typesense/typesense:26.0
+    profiles: ["light-search"]
+    command: >
+      --data-dir /data
+      --api-key=${TYPESENSE_API_KEY:-inventory-dev-key}
+      --enable-cors
+    volumes:
+      - typesense_light_data:/data
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # FULL profile — Postgres + Typesense + dedicated queue worker
+  # ---------------------------------------------------------------------------
+  app-full:
+    <<: *app-image
+    profiles: ["full"]
+    env_file:
+      - .env.docker
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${POSTGRES_DB:-inventory}
+      DB_USERNAME: ${POSTGRES_USER:-inventory}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-inventory}
+      QUEUE_CONNECTION: database
+      CACHE_DRIVER: file
+      SESSION_DRIVER: file
+      SCOUT_DRIVER: typesense
+      TYPESENSE_HOST: typesense
+      TYPESENSE_PORT: 8108
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-inventory-dev-key}
+      ENV_FILE: /var/www/html/storage/persisted.env
+    volumes:
+      - app_full_state:/var/www/html/storage
+    ports:
+      - "${APP_PORT:-8088}:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      typesense:
+        condition: service_started
+    restart: unless-stopped
+
+  # Dedicated queue worker (full profile) — processes the database queue.
+  queue:
+    <<: *app-image
+    profiles: ["full"]
+    env_file:
+      - .env.docker
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${POSTGRES_DB:-inventory}
+      DB_USERNAME: ${POSTGRES_USER:-inventory}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-inventory}
+      QUEUE_CONNECTION: database
+      SCOUT_DRIVER: typesense
+      TYPESENSE_HOST: typesense
+      TYPESENSE_PORT: 8108
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-inventory-dev-key}
+      ENV_FILE: /var/www/html/storage/persisted.env
+    # Reuse the persisted state (same APP_KEY → BYOK keys decrypt) but skip the
+    # web server: the entrypoint still bootstraps, then runs the worker as CMD.
+    volumes:
+      - app_full_state:/var/www/html/storage
+    command: ["php", "-d", "error_reporting=8191", "artisan", "queue:work", "--sleep=3", "--tries=3"]
+    depends_on:
+      app-full:
+        condition: service_started
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["full"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-inventory}
+      POSTGRES_USER: ${POSTGRES_USER:-inventory}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-inventory}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-inventory}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  typesense:
+    image: typesense/typesense:26.0
+    profiles: ["full"]
+    command: >
+      --data-dir /data
+      --api-key=${TYPESENSE_API_KEY:-inventory-dev-key}
+      --enable-cors
+    volumes:
+      - typesense_data:/data
+    restart: unless-stopped
+
+volumes:
+  app_light_state:
+  app_full_state:
+  postgres_data:
+  typesense_data:
+  typesense_light_data:
