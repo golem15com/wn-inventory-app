@@ -141,6 +141,21 @@ log "Running migrations (winter:up)..."
 $ARTISAN winter:up
 
 # --- 7. FRONTEND admin seed (D-15 — net-new vs backend-init) -----------------
+#
+# D-12 / WS-5 — ZERO FRONTEND USERS ON A FRESH DEPLOY (first-run onboarding):
+# A fresh container with an EMPTY ADMIN_PASSWORD starts with ZERO frontend users.
+# The seed below is skipped (see the `-z "$ADMIN_PASSWORD"` branch), so
+# Golem15\User::count() === 0 and the D-10 first-run owner onboarding path
+# triggers (GET /_inventory/api/v1/onboarding/status → {needs_onboarding: true}).
+# This is the correct unseeded zero-user path and must stay that way.
+#
+# No tracked code path (audited across plugins/, scripts/, docker/, backend-init.sh,
+# setup.sh) seeds any sample frontend user. In particular, any stray sample
+# accounts on a throwaway dev domain are LOCAL/runtime DB state on a developer's
+# machine — they are NOT created by this image. To onboard an existing deploy
+# that already has such stray users, delete them so the user count returns to
+# zero (operator action).
+#
 # Create the FRONTEND Golem15\User group with code 'admin' (the one AiGate
 # checks) + a default frontend admin user from env, idempotently. NO password
 # literal is baked into the image — it comes from ADMIN_PASSWORD (T-11-23).
