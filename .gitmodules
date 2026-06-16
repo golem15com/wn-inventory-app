@@ -82,3 +82,6 @@
 [submodule "inventory-mcp"]
 	path = inventory-mcp
 	url = git@git.golem15.com:jakub/inventory-mcp.git
+[submodule "ha-inventory-addon"]
+	path = ha-inventory-addon
+	url = git@git.golem15.com:jakub/ha-inventory-addon.git
