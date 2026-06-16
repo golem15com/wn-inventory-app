@@ -151,7 +151,7 @@ return [
         | search-parameters as a SIBLING of collection-schema (04-RESEARCH Finding 2).
         */
         'model-settings' => [
-            \JZ\Inventory\Models\Item::class => \JZ\Inventory\Models\Item::getSearchConfig(),
+            \Golem15\Inventory\Models\Item::class => \Golem15\Inventory\Models\Item::getSearchConfig(),
         ],
 
         'import_action' => env('TYPESENSE_IMPORT_ACTION', 'upsert'),

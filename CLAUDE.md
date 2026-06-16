@@ -245,14 +245,14 @@ Configure Laravel scheduler via cron:
 
 **Inventory**
 
-A personal/household inventory catalog for physical things — cables, tools, batteries, devices — scattered across many places. You record **what** you own, **which category** it belongs to, and **where** it physically lives (a Location inside an Area), then find it instantly by searching instead of hunting through drawers, boxes, and cupboards. Built as a new `JZ\Inventory` plugin on the Golem15 stack, with a Vue SPA (`vue-inventory-app`) front-end and a fast, permission-scoped search powered by Typesense via Laravel Scout (reused from the Journal plugin).
+A personal/household inventory catalog for physical things — cables, tools, batteries, devices — scattered across many places. You record **what** you own, **which category** it belongs to, and **where** it physically lives (a Location inside an Area), then find it instantly by searching instead of hunting through drawers, boxes, and cupboards. Built as a `Golem15\Inventory` plugin on the Golem15 stack, with a Vue SPA (`vue-inventory-app`) front-end and a fast, permission-scoped search powered by Typesense via Laravel Scout (reused from the Journal plugin).
 
 **Core Value:** Type the name of a thing and immediately see where it is — across every Area you have access to. If everything else fails, search-to-location must work.
 
 ### Constraints
 
 - **Tech stack**: PHP >= 8.4, WinterCMS ~1.2 / Laravel 9.x backend; Vue SPA front-end — Golem15 stack standard, non-negotiable for core plugins.
-- **Plugin namespace**: `JZ\Inventory` in `plugins/jz/inventory` — submodule already created and registered in `.gitmodules`.
+- **Plugin namespace**: `Golem15\Inventory` in `plugins/golem15/inventory` — submodule already created and registered in `.gitmodules`.
 - **Search**: Typesense via Laravel Scout, reusing the Journal plugin's infrastructure — avoid a second search stack.
 - **Security**: All access permission-scoped per-Area, enforced server-side including in search results — a user must never see another Area's items.
 - **Snowboard caveat**: WinterCMS Snowboard does not support `data-request-success` (use JS event handlers) — relevant only if any CMS-side JS is touched; the SPA is the primary front-end.

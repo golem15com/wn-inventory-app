@@ -36,7 +36,7 @@ return [
             'driver' => 'jwt',
             'provider' => 'users',
         ],
-        // Phase 8 personal-API-token guard (JZ.Inventory). Driver `inv-token`
+        // Phase 8 personal-API-token guard (Golem15.Inventory). Driver `inv-token`
         // (HYPHEN) matches auth()->extend('inv-token', ...); guard key `inv_token`
         // (UNDERSCORE) so config('auth.guards.inv_token') resolves — a dot would
         // break the dot-notation lookup (Pitfall 2). Resolves the frontend

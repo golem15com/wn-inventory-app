@@ -16,9 +16,10 @@
 [submodule "plugins/golem15/backend"]
 	path = plugins/golem15/backend
 	url = git@github.com:golem15com/wn-backend-plugin.git
-[submodule "plugins/jz/inventory"]
-	path = plugins/jz/inventory
-	url = git@git.golem15.com:jakub/wn-inventory-plugin.git
+[submodule "plugins/golem15/inventory"]
+	path = plugins/golem15/inventory
+	url = git@github.com:golem15com/wn-inventory-plugin.git
+	branch = master
 [submodule "vue-inventory-app"]
 	path = vue-inventory-app
 	url = git@git.golem15.com:jakub/vue-inventory-app.git
