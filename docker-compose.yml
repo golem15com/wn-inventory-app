@@ -49,8 +49,48 @@ services:
       ENV_FILE: /var/www/html/storage/persisted.env
     volumes:
       - app_light_state:/var/www/html/storage
+    # Internal-only — the edge proxy owns the public port and reaches this
+    # container as "app" on the default network (T-11-26).
+    expose:
+      - "80"
+    networks:
+      default:
+        aliases:
+          - app
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # SPA (static nuxt generate) — profile-agnostic, internal-only. The compose
+  # service name "spa" IS the upstream name in docker/proxy.nginx.conf.
+  # ---------------------------------------------------------------------------
+  spa:
+    image: inventory-spa:latest
+    profiles: ["light", "full"]
+    build:
+      context: .
+      dockerfile: docker/spa.Dockerfile
+    expose:
+      - "80"
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Edge proxy — owns the public port; routes / + SPA routes to "spa" and
+  # /_inventory/api, /_user/api, /_journal/api, /api/realtime, /storage,
+  # /backend + Winter asset paths to "app", same-origin (D-13). The "app"
+  # upstream resolves to whichever app service is active (app-light/app-full
+  # both carry the "app" network alias; profiles are mutually exclusive).
+  # ---------------------------------------------------------------------------
+  proxy-light:
+    image: inventory-proxy:latest
+    profiles: ["light"]
+    build:
+      context: .
+      dockerfile: docker/proxy.Dockerfile
     ports:
       - "${APP_PORT:-8088}:80"
+    depends_on:
+      - app-light
+      - spa
     restart: unless-stopped
 
   # Optional Typesense for light mode — enable with the "light" profile only if
@@ -91,13 +131,34 @@ services:
       ENV_FILE: /var/www/html/storage/persisted.env
     volumes:
       - app_full_state:/var/www/html/storage
-    ports:
-      - "${APP_PORT:-8088}:80"
+    # Internal-only — the edge proxy owns the public port and reaches this
+    # container as "app" on the default network (T-11-26).
+    expose:
+      - "80"
+    networks:
+      default:
+        aliases:
+          - app
     depends_on:
       postgres:
         condition: service_healthy
       typesense:
         condition: service_started
+    restart: unless-stopped
+
+  # Edge proxy for the full profile (same image; the "app" alias resolves to
+  # app-full here since the full profile is active).
+  proxy-full:
+    image: inventory-proxy:latest
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: docker/proxy.Dockerfile
+    ports:
+      - "${APP_PORT:-8088}:80"
+    depends_on:
+      - app-full
+      - spa
     restart: unless-stopped
 
   # Dedicated queue worker (full profile) — processes the database queue.
