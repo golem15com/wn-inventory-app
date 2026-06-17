@@ -187,8 +187,8 @@ else
             \$user = new \Golem15\User\Models\User;
             \$user->email                 = '${ADMIN_EMAIL}';
             \$user->username              = '${ADMIN_USERNAME}';
-            \$user->first_name            = '${ADMIN_FIRST_NAME}';
-            \$user->last_name             = '${ADMIN_LAST_NAME}';
+            \$user->name                  = '${ADMIN_FIRST_NAME}';
+            \$user->surname               = '${ADMIN_LAST_NAME}';
             \$user->password              = '${ADMIN_PASSWORD}';
             \$user->password_confirmation = '${ADMIN_PASSWORD}';
             \$user->is_activated          = true;
@@ -210,6 +210,21 @@ log "Mirroring public assets (winter:mirror)..."
 $ARTISAN winter:mirror public --relative >/dev/null 2>&1 || $ARTISAN winter:mirror public --relative
 
 $ARTISAN config:clear >/dev/null 2>&1 || true
+
+# Re-assert ownership AFTER the root-run artisan steps (migrate/seed/mirror) so
+# php-fpm (www-data) can write the file cache. Without this, cache subdirs created
+# by the root-run commands above are root-owned 0755 and every page that writes
+# cache 500s with "file_put_contents ... No such file or directory".
+chown -R www-data:www-data storage bootstrap public 2>/dev/null || true
+
+# Export the persisted secrets into the process env so the CMD (supervisord →
+# php-fpm) sees the REAL values. compose's `env_file: .env.docker` injects the
+# example's blank APP_KEY=/JWT_SECRET= as EMPTY container env vars, and phpdotenv
+# will NOT override an already-set env var — so without this the empty env var
+# shadows the generated key in the persisted .env and every web request 500s with
+# MissingAppKeyException (the entrypoint's own artisan calls hit the same shadow).
+export APP_KEY="$(get_env APP_KEY)"
+export JWT_SECRET="$(get_env JWT_SECRET)"
 
 log "Boot complete — handing off to CMD."
 # exec the container CMD (supervisord → php-fpm + nginx).

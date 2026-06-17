@@ -39,7 +39,13 @@ storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
 storage/cms/*
+# NEVER bake a database into the image. A bare `*.sqlite` only matches the context
+# ROOT — it does NOT match storage/database.sqlite — so without the nested globs the
+# dev DB (real users + data) ships inside the published image and seeds every volume.
 *.sqlite
+**/*.sqlite
+storage/*.sqlite
+storage/app/uploads/*
 typesense-data
 
 # Editor / OS cruft

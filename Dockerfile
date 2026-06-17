@@ -25,7 +25,7 @@ FROM php:8.4-cli AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git unzip zip patch openssh-client \
         libzip-dev libpng-dev libjpeg-dev libfreetype6-dev \
-        libpq-dev libicu-dev libonig-dev \
+        libpq-dev libicu-dev libonig-dev libsqlite3-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" \
         pdo_sqlite pdo_mysql pdo_pgsql mbstring bcmath zip gd intl exif \
@@ -65,15 +65,19 @@ RUN patch -p1 -d vendor/winter/storm < patches/winter-storm-php84-null-offset.pa
 # -----------------------------------------------------------------------------
 FROM php:8.4-fpm AS runtime
 
-# Runtime libs + nginx + supervisor (one container runs php-fpm and nginx).
+# Runtime SHARED libs only (no compilers, no -dev headers) + nginx + supervisor.
+# The PHP extensions are COMPILED in the builder stage and COPYed in below, so the
+# lean runtime never recompiles them — it only needs the shared libs they link to.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         nginx supervisor \
-        libzip4 libpng16-16 libjpeg62-turbo libfreetype6 \
-        libpq5 libicu72 libonig5 \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j"$(nproc)" \
-        pdo_sqlite pdo_mysql pdo_pgsql mbstring bcmath zip gd intl exif \
+        libzip5 libpng16-16 libjpeg62-turbo libfreetype6 \
+        libpq5 libicu76 libonig5 libsqlite3-0 \
     && rm -rf /var/lib/apt/lists/*
+
+# Bring the extensions built in stage 1 (pdo_*, mbstring, bcmath, zip, gd, intl,
+# exif) and their enabling ini files, instead of recompiling in the runtime image.
+COPY --from=builder /usr/local/lib/php/extensions /usr/local/lib/php/extensions
+COPY --from=builder /usr/local/etc/php/conf.d/docker-php-ext-*.ini /usr/local/etc/php/conf.d/
 
 # Sensible PHP production defaults (uploads for the AI photo path: 10MB cap +
 # headroom; memory for composer-free artisan commands at boot).
