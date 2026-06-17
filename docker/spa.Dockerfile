@@ -27,7 +27,10 @@ COPY vue-inventory-app/ /spa/
 RUN pnpm install --frozen-lockfile
 
 # Emit the fully static site to /spa/.output/public (Nuxt 4 static output).
-RUN pnpm generate
+# NUXT_SPA_MODE=1 forces ssr:false (see nuxt.config.ts) so protected client-auth
+# routes are NOT prerendered into redirect-to-/login stubs — the self-host build
+# must be a pure SPA that resolves auth in the browser from the cookie.
+RUN NUXT_SPA_MODE=1 pnpm generate
 
 # --- Stage 2: serve the static output via a lean nginx -----------------------
 FROM nginx:alpine AS runtime
