@@ -15,7 +15,10 @@
 vendor
 composer.phar
 
-# Node / SPA build output (the Vue app is built & served separately)
+# Node / SPA build output. The Vue app (vue-inventory-app) is built into its OWN
+# image by docker/spa.Dockerfile via `pnpm generate`, so its SOURCE (incl.
+# package.json + pnpm-lock.yaml) MUST reach the build context — only its build
+# ARTIFACTS below are excluded to keep the context lean.
 node_modules
 vue-inventory-app/node_modules
 vue-inventory-app/.nuxt
