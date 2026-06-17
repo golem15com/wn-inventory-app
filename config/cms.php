@@ -11,7 +11,11 @@ return [
     |
     */
 
-    'activeTheme' => 'demo',
+    // Self-host serves the Vue SPA at /; no CMS frontend theme is used — the
+    // edge proxy fronts / (and SPA routes) to the spa container, while /backend
+    // (which needs no frontend theme) goes to the app container. Left empty so
+    // nothing serves the old Winter "demo" placeholder.
+    'activeTheme' => '',
 
     /*
     |--------------------------------------------------------------------------

@@ -21,7 +21,42 @@ docker compose --profile light up
 docker compose --profile full up
 ```
 
-Then open <http://localhost:8088>.
+Then open <http://localhost:8088> — you land on the **Inventory product** (the
+Vue SPA), not a Winter placeholder.
+
+---
+
+## Serving architecture (D-13 — SPA + edge proxy)
+
+`docker compose up` brings up **three** containers that together serve a single
+same-origin product:
+
+| Container | Image | Role |
+|-----------|-------|------|
+| `proxy` (`proxy-light` / `proxy-full`) | `inventory-proxy` (`docker/proxy.Dockerfile`) | Owns the public port (`${APP_PORT}`). Routes `/` + SPA client routes → `spa`; `/_inventory/api`, `/_user/api`, `/_journal/api`, `/api/realtime`, `/storage`, `/backend`, and Winter asset paths (`/modules`, `/plugins`, `/themes`, `/favicon.ico`) → `app`. Forwards `Host` + `X-Forwarded-Proto` so Winter (`LINK_POLICY=force` + `APP_URL`) builds correct backend URLs. |
+| `spa` | `inventory-spa` (`docker/spa.Dockerfile`) | Static `nuxt generate` bundle of `vue-inventory-app` served by a lean nginx. Internal-only. Build needs **no** SSH secret (all-public npm deps). |
+| `app` (`app-light` / `app-full`) | `inventory-app` (`Dockerfile`) | PHP-FPM + nginx: Winter backend (`/backend`), the JSON APIs, and the served `/storage/app` media mirror. Internal-only (no host port). |
+
+Why same-origin: the SPA fetches **relative** API paths (`/_inventory/api/...`)
+and its serializers emit **relative** media URLs (`/storage/app/uploads/...`).
+The nuxt.config dev-proxy/routeRules are **dev-only** and do nothing in a static
+build — so the edge proxy is what makes the SPA and backend share one origin in
+production (no CORS, no cross-origin cookies).
+
+The app and spa containers no longer publish a host port; **only the proxy is
+reachable from the host**. Building now produces **three** images:
+
+```bash
+DOCKER_BUILDKIT=1 docker compose --profile light build --ssh default
+```
+
+(The `--ssh default` secret is consumed only by the **app** image for the
+private keios composer deps; the spa + proxy images use no secret.)
+
+> No CMS frontend theme is served: the old Winter `demo` theme
+> ("Golem15 is planning something…") has been removed and `config/cms.php` sets
+> `activeTheme => ''`. `/` is the Vue SPA; `/backend` is the admin panel and
+> needs no frontend theme.
 
 ---
 

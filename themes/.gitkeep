@@ -1,0 +1,5 @@
+# Intentionally empty.
+The self-host frontend is the Vue SPA (served by the spa container via the edge
+proxy); no CMS frontend theme is used. config/cms.php sets activeTheme to "".
+This directory is kept so Winter CMS theme-scanning never fatals on a missing
+themes/ directory (DirectoryIterator). Do not add a CMS theme here.
