@@ -43,3 +43,7 @@ temp
 
 # Typesense container runtime data store (run-typesense.sh DATA_DIR)
 /typesense-data
+
+# Phase 15 (HIST-04): .planning/ relocated to its own private repo (D-06).
+# Standalone git repo in the working tree, never a submodule, never published.
+.planning/
