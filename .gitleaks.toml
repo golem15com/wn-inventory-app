@@ -1,0 +1,21 @@
+# .gitleaks.toml — Inventory secret-scan baseline (Phase 13 / SAFE-03)
+#
+# Inherit gitleaks' built-in rule pack, then allowlist ONLY two known-safe
+# FILE-PATH zones so the full-history baseline scan is LITERALLY zero hits
+# (D-12 / D-13). The allowlist is deliberately path-scoped — NO broad secret
+# regex / stopword that could mask a real future key (Pitfall 6 / T-13-11).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Phase 13 baseline allowlist — deliberate test fixture + .planning/ (D-12/D-13)"
+paths = [
+  # (1) Deliberate fake secrets used to PROVE leak detection (sk-member-attempt,
+  #     sk-owner-secret, sk-never-echoed-secret, sk-org-a, sk-org-b). Allowlisted
+  #     by FILE PATH only, so a real sk- key elsewhere is still caught (Pitfall 6).
+  '''plugins/golem15/inventory/tests/security/OrgAiCredentialLeakTest\.php''',
+  # (2) .planning/ — stripped from history in Phase 15 and never reaches a public
+  #     remote, so any secret inside (e.g. the already-dead leaked Typesense key)
+  #     is moot. Suppressing it makes the baseline LITERALLY zero hits (D-13).
+  '''^\.planning/''',
+]
