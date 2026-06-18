@@ -240,7 +240,6 @@ Configure Laravel scheduler via cron:
 - Backend forms/lists configuration in `plugins/*/models/*/fields.yaml` and `columns.yaml`
 - Backend translation keys follow pattern: `plugin.namespace::lang.section.key`
 
-<!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
 **Inventory**
@@ -257,9 +256,7 @@ A personal/household inventory catalog for physical things — cables, tools, ba
 - **Security**: All access permission-scoped per-Area, enforced server-side including in search results — a user must never see another Area's items.
 - **Snowboard caveat**: WinterCMS Snowboard does not support `data-request-success` (use JS event handlers) — relevant only if any CMS-side JS is touched; the SPA is the primary front-end.
 - **Submodules**: Both plugin and Vue app are git submodules (use `ssu` for management); changes commit to their own repos plus a superproject reference bump.
-<!-- GSD:project-end -->
 
-<!-- GSD:stack-start source:codebase/STACK.md -->
 ## Technology Stack
 
 ## Languages
@@ -341,9 +338,7 @@ A personal/household inventory catalog for physical things — cables, tools, ba
 - Queue worker for broadcast jobs (`BROADCAST_QUEUE=broadcasts`)
 - AWS S3 (optional, configured via `AWS_*` env vars, requires Winter.DriverAWS plugin)
 - Redis (optional, supported for cache, session, and queue drivers)
-<!-- GSD:stack-end -->
 
-<!-- GSD:conventions-start source:CONVENTIONS.md -->
 ## Conventions
 
 ## Standards
@@ -360,31 +355,19 @@ A personal/household inventory catalog for physical things — cables, tools, ba
 - `golem15_paymentgateway_payments`
 - `golem15_paymentgateway_orders`
 - `golem15_paymentgateway_currencies`
-## Plugin File Organization
-## WinterCMS Plugin Registration Patterns
-## Backend Translation Key Pattern
-## Backend Controller Patterns
-## Model Patterns
-## Backend YAML Configuration
-## Component Patterns
-## Snowboard AJAX Constraint
 ## Twig Filters
 - `ucfirst` — PHP built-in
 - `human_date` — calls `HumanDateExtension::humanDateFilter()`
 - `raw_safe` — HTMLPurifier-backed sanitizer; use instead of `|raw` for user-generated HTML
 - `money` — formats a MoneyRight `Money` object via `MoneyFormatter::format()`
 - `item_details` — formats a cart item via `ItemFormatter::format()`
-## Migration Files
-## Error Handling
 ## EditorConfig
 - Indent: 4 spaces (no tabs)
 - Line endings: LF
 - Charset: UTF-8
 - Trailing whitespace: trimmed
 - Final newline: required
-<!-- GSD:conventions-end -->
 
-<!-- GSD:architecture-start source:ARCHITECTURE.md -->
 ## Architecture
 
 ## Pattern Overview
@@ -425,11 +408,6 @@ A personal/household inventory catalog for physical things — cables, tools, ba
 - Contains: Nuxt 4 app (`app/`), shared components (`shared/`), i18n (`i18n/`), Playwright tests (`tests/`)
 - Depends on: Backend API routes exposed by User plugin and other plugins
 - Used by: End users
-## Plugin Dependency Graph
-```
-```
-- `Winter.Debugbar` — debug toolbar
-- `Winter.Location` — location/country data
 ## Data Flow
 - No global frontend state manager — server-side rendered CMS pages with Twig
 - Backend panel state is session-based (Laravel sessions)
@@ -496,31 +474,3 @@ A personal/household inventory catalog for physical things — cables, tools, ba
 - Backend AJAX handlers throw `\ValidationException` or `\ApplicationException` which WinterCMS renders as flash messages
 - JWT auth errors return 401 JSON via `JwtAuthenticate` middleware
 - HTML output sanitized via `HtmlSanitizer::clean()` (HTMLPurifier, `raw_safe` Twig filter)
-## Cross-Cutting Concerns
-<!-- GSD:architecture-end -->
-
-<!-- GSD:skills-start source:skills/ -->
-## Project Skills
-
-No project skills found. Add skills to any of: `.claude/skills/`, `.agents/skills/`, `.cursor/skills/`, `.github/skills/`, or `.codex/skills/` with a `SKILL.md` index file.
-<!-- GSD:skills-end -->
-
-<!-- GSD:workflow-start source:GSD defaults -->
-## GSD Workflow Enforcement
-
-Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
-
-Use these entry points:
-- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
-- `/gsd-debug` for investigation and bug fixing
-- `/gsd-execute-phase` for planned phase work
-
-Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
-<!-- GSD:workflow-end -->
-
-<!-- GSD:profile-start -->
-## Developer Profile
-
-> Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
-> This section is managed by `generate-claude-profile` -- do not edit manually.
-<!-- GSD:profile-end -->
