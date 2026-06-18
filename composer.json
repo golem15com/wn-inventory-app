@@ -1,11 +1,16 @@
 {
-    "name": "wintercms/winter",
-    "description": "Free, open-source, self-hosted CMS platform based on the Laravel PHP Framework. Originally known as October CMS.",
-    "homepage": "https://wintercms.com",
+    "name": "golem15/inventory",
+    "description": "Personal/household inventory catalog on the Golem15 stack (WinterCMS) — record what you own, which category, and where it lives, with permission-scoped Typesense search.",
+    "homepage": "https://github.com/golem15com/wn-inventory-app",
     "type": "project",
-    "keywords": ["winter", "cms", "wintercms", "laravel", "cmf"],
+    "keywords": ["inventory", "catalog", "golem15", "wintercms", "laravel", "typesense"],
     "license": "MIT",
     "authors": [
+        {
+            "name": "Golem15",
+            "homepage": "https://github.com/golem15com",
+            "role": "Maintainer"
+        },
         {
             "name": "Alexey Bobkov",
             "email": "aleksey.bobkov@gmail.com",
@@ -23,10 +28,8 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/wintercms/winter/issues",
-        "docs": "https://wintercms.com/docs/",
-        "discord": "https://discord.gg/D5MFSPH6Ux",
-        "source": "https://github.com/wintercms/winter"
+        "issues": "https://github.com/golem15com/wn-inventory-app/issues",
+        "source": "https://github.com/golem15com/wn-inventory-app"
     },
     "require": {
         "php": ">=8.1",
