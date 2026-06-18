@@ -18,4 +18,9 @@ paths = [
   #     remote, so any secret inside (e.g. the already-dead leaked Typesense key)
   #     is moot. Suppressing it makes the baseline LITERALLY zero hits (D-13).
   '''^\.planning/''',
+  # (3) Vendored WinterCMS-core richeditor assets — the public upstream Froala
+  #     WYSIWYG license/activation key ($.FroalaEditor.DEFAULTS.key) shipped in
+  #     every Winter/October install (commit 7d39577). A dispositioned non-secret
+  #     (NOT our credential), scoped by FILE PATH only to this vendored-core dir.
+  '''^modules/backend/formwidgets/richeditor/assets/js/''',
 ]
