@@ -22,10 +22,10 @@
 	branch = master
 [submodule "vue-inventory-app"]
 	path = vue-inventory-app
-	url = git@git.golem15.com:jakub/vue-inventory-app.git
+	url = git@github.com:golem15com/vue-inventory-app.git
 [submodule "inventory-mcp"]
 	path = inventory-mcp
-	url = git@git.golem15.com:jakub/inventory-mcp.git
+	url = git@github.com:golem15com/inventory-mcp.git
 [submodule "ha-inventory-addon"]
 	path = ha-inventory-addon
-	url = git@git.golem15.com:jakub/ha-inventory-addon.git
+	url = git@github.com:golem15com/ha-inventory-addon.git
