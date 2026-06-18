@@ -1,31 +1,31 @@
 [submodule "plugins/golem15/apparatus"]
 	path = plugins/golem15/apparatus
-	url = git@github.com:golem15com/oc-apparatus-plugin.git
+	url = https://github.com/golem15com/oc-apparatus-plugin.git
 	branch = master
 [submodule "plugins/golem15/translate"]
 	path = plugins/golem15/translate
-	url = git@github.com:golem15com/wn-translate-plugin.git
+	url = https://github.com/golem15com/wn-translate-plugin.git
 	branch = master
 [submodule "plugins/golem15/user"]
 	path = plugins/golem15/user
-	url = git@github.com:golem15com/wn-user-plugin.git
+	url = https://github.com/golem15com/wn-user-plugin.git
 	branch = master
 [submodule "plugins/golem15/golem"]
 	path = plugins/golem15/golem
-	url = git@github.com:golem15com/wn-golem-plugin.git
+	url = https://github.com/golem15com/wn-golem-plugin.git
 [submodule "plugins/golem15/backend"]
 	path = plugins/golem15/backend
-	url = git@github.com:golem15com/wn-backend-plugin.git
+	url = https://github.com/golem15com/wn-backend-plugin.git
 [submodule "plugins/golem15/inventory"]
 	path = plugins/golem15/inventory
-	url = git@github.com:golem15com/wn-inventory-plugin.git
+	url = https://github.com/golem15com/wn-inventory-plugin.git
 	branch = master
 [submodule "vue-inventory-app"]
 	path = vue-inventory-app
-	url = git@github.com:golem15com/vue-inventory-app.git
+	url = https://github.com/golem15com/vue-inventory-app.git
 [submodule "inventory-mcp"]
 	path = inventory-mcp
-	url = git@github.com:golem15com/inventory-mcp.git
+	url = https://github.com/golem15com/inventory-mcp.git
 [submodule "ha-inventory-addon"]
 	path = ha-inventory-addon
-	url = git@github.com:golem15com/ha-inventory-addon.git
+	url = https://github.com/golem15com/ha-inventory-addon.git
