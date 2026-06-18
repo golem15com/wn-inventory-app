@@ -8,7 +8,7 @@
 useDefault = true
 
 [allowlist]
-description = "Phase 13 baseline allowlist — deliberate test fixture + .planning/ (D-12/D-13)"
+description = "Baseline allowlist — deliberate test fixture + vendored third-party defaults (D-12/D-13)"
 # (Phase 14 / AUDIT-03) Suppress ONLY the exact CompreFace third-party DEFAULT
 # OAuth client credential baked into the shared Golem15.Golem plugin
 # (classes/services/CompreFaceClient.php + models/FaceSettings.php). The literal
@@ -25,11 +25,7 @@ paths = [
   #     sk-owner-secret, sk-never-echoed-secret, sk-org-a, sk-org-b). Allowlisted
   #     by FILE PATH only, so a real sk- key elsewhere is still caught (Pitfall 6).
   '''plugins/golem15/inventory/tests/security/OrgAiCredentialLeakTest\.php''',
-  # (2) .planning/ — stripped from history in Phase 15 and never reaches a public
-  #     remote, so any secret inside (e.g. the already-dead leaked Typesense key)
-  #     is moot. Suppressing it makes the baseline LITERALLY zero hits (D-13).
-  '''^\.planning/''',
-  # (3) Vendored WinterCMS-core richeditor assets — the public upstream Froala
+  # (2) Vendored WinterCMS-core richeditor assets — the public upstream Froala
   #     WYSIWYG license/activation key ($.FroalaEditor.DEFAULTS.key) shipped in
   #     every Winter/October install (commit 7d39577). A dispositioned non-secret
   #     (NOT our credential), scoped by FILE PATH only to this vendored-core dir.
