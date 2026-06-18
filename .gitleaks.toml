@@ -9,6 +9,17 @@ useDefault = true
 
 [allowlist]
 description = "Phase 13 baseline allowlist — deliberate test fixture + .planning/ (D-12/D-13)"
+# (Phase 14 / AUDIT-03) Suppress ONLY the exact CompreFace third-party DEFAULT
+# OAuth client credential baked into the shared Golem15.Golem plugin
+# (classes/services/CompreFaceClient.php + models/FaceSettings.php). The literal
+# base64 below decodes to "CommonClientId:password" — CompreFace's own DOCUMENTED
+# public default from its application.yml (an upstream third-party default, NOT a
+# Golem15 secret), same disposition class as the Phase-13 vendored Froala key.
+# A NARROW exact-literal regex (no broad secret-regex / stopword) keeps T-13-11
+# intact so a real future key is still caught.
+regexes = [
+  '''Q29tbW9uQ2xpZW50SWQ6cGFzc3dvcmQ=''',
+]
 paths = [
   # (1) Deliberate fake secrets used to PROVE leak detection (sk-member-attempt,
   #     sk-owner-secret, sk-never-echoed-secret, sk-org-a, sk-org-b). Allowlisted
