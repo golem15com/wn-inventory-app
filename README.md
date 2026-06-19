@@ -83,12 +83,12 @@ split across a few open-source repositories:
 |------------|-----------|
 | **this repo** | The full self-host application: WinterCMS backend, Docker setup, and the Golem15 plugin stack as submodules |
 | [`wn-inventory-plugin`](https://github.com/golem15com/wn-inventory-plugin) | The `Golem15.Inventory` WinterCMS plugin — data model, REST API, permissions, search, AI |
-| `vue-inventory-app` | The Vue / Nuxt single-page front end |
-| `inventory-mcp` | Model Context Protocol server for AI assistants |
-| `ha-inventory-addon` | Home Assistant add-on for voice search |
+| [`vue-inventory-app`](https://github.com/golem15com/vue-inventory-app) | The Vue / Nuxt single-page front end |
+| [`inventory-mcp`](https://github.com/golem15com/inventory-mcp) | Model Context Protocol server for AI assistants |
+| [`ha-inventory-addon`](https://github.com/golem15com/ha-inventory-addon) | Home Assistant add-on for voice search |
 
-> Some component repositories are being opened up alongside this one — links will go live as
-> each is published under the [golem15com](https://github.com/golem15com) organisation.
+All component repositories are published under the
+[golem15com](https://github.com/golem15com) organisation.
 
 ## 🚀 Quick start (self-host)
 
@@ -158,7 +158,7 @@ Released under the **[MIT License](LICENSE.md)** — free to use, modify, self-h
 on, including commercially.
 
 Bundled WinterCMS core, Laravel, and other dependencies remain under their own licenses (all
-MIT-compatible); see [`LICENSE.md`](LICENSE.md) and [`LICENSE`](LICENSE) for details.
+MIT-compatible); see [`LICENSE.md`](LICENSE.md) for details.
 
 ---
 
