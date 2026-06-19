@@ -187,3 +187,50 @@ To wipe everything and start fresh, remove the volumes:
 ```bash
 docker compose --profile light down -v
 ```
+
+---
+
+## Optional: Inventory MCP server (HTTP transport)
+
+The `inventory-mcp` submodule lets Claude Desktop/Code, Codex, or any MCP client search and edit your
+catalog. **stdio (run on the same machine as your client, zero infra) is the default path** — see
+`inventory-mcp/README.md`. The snippet below is **opt-in** for self-hosters who want one shared MCP
+server (e.g. on the droplet that runs your stack) reachable across devices.
+
+> This compose snippet is **OPTIONAL** and is **NOT part of the main `docker-compose.yml`**. It is
+> deliberately **NOT wired behind the edge `proxy`** container. If you expose the transport beyond a
+> private/LAN network you must **TLS-terminate it yourself** (the Node process speaks plain HTTP; the
+> HTTP transport is fine on http for local/private use, https is **required** if public).
+
+Add a separate compose file (e.g. `docker-compose.mcp.yml`) or paste this as an extra service you
+manage on your own:
+
+```yaml
+services:
+  inventory-mcp:
+    build: ./inventory-mcp
+    environment:
+      # Your Inventory token API base URL (REQUIRED — no default; container exits 1 if unset).
+      # Single-origin (API + SPA on one host). With the main stack on the same docker network,
+      # the app service is reachable as http://app:80:
+      #   INVENTORY_API_URL: "http://app:80"
+      # Split api-host (the backend serves /api/v1/inventory on a separate api. host):
+      INVENTORY_API_URL: "https://api.yourdomain"
+      INVENTORY_MCP_PORT: "3100"
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
+```
+
+Then add an MCP client, pointing at `http://YOUR_HOST:3100/mcp` with an `Authorization: Bearer inv_…`
+header (the HTTP transport takes the `inv_` token **per request** — no server-side token).
+
+**Manual build / fail-fast smoke** (D-03 — confirms the image never carries a hosted default):
+
+```bash
+# Builds, then exits 1 with the actionable message because INVENTORY_API_URL is unset:
+docker build -t inventory-mcp inventory-mcp && docker run --rm inventory-mcp
+
+# Re-run with the env set — it then listens on :3100:
+docker run --rm -e INVENTORY_API_URL=http://host.docker.internal:8088 -p 3100:3100 inventory-mcp
+```
